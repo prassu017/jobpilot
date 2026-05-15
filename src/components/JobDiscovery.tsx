@@ -123,7 +123,11 @@ export default function JobDiscovery({
 
   const filtered = useMemo(() => {
     const source = freshJobs || jobs;
+    const seen = new Set<string>();
     return source.filter((j) => {
+      const key = `${j.title.toLowerCase()}|${j.company.toLowerCase()}|${j.platform}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
       if (!freshJobs) {
         if (query && !j.title.toLowerCase().includes(query.toLowerCase()) && !j.company.toLowerCase().includes(query.toLowerCase())) return false;
         if (location && !j.location.toLowerCase().includes(location.toLowerCase())) return false;

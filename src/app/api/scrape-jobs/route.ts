@@ -219,13 +219,31 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const seen = new Set<string>();
+    const uniqueJobs = allJobs.filter((j) => {
+      if (!j.title) return false;
+      const key = `${j.title.toLowerCase()}|${j.company.toLowerCase()}|${j.platform}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+
+    const existingRes = await queryDatabricks(
+      `SELECT LOWER(title), LOWER(company), platform FROM default.jobpilot_jobs`
+    );
+    const existingKeys = new Set(
+      existingRes.data.map(([t, c, p]) => `${t}|${c}|${p}`)
+    );
+
+    const newJobs = uniqueJobs.filter(
+      (j) => !existingKeys.has(`${j.title.toLowerCase()}|${j.company.toLowerCase()}|${j.platform}`)
+    );
+
     const now = new Date().toISOString().replace("T", " ").split(".")[0];
-    const values = allJobs
-      .filter((j) => j.title)
-      .map((j) => {
-        const jid = randomUUID();
-        return `('${jid}', '${esc(j.title)}', '${esc(j.company)}', '${esc(j.location)}', ${j.salary_min}, ${j.salary_max}, '${esc(j.job_type)}', '${j.platform}', '${esc(j.url)}', '${esc(j.description)}', '${j.posted_date}', '${now}')`;
-      });
+    const values = newJobs.map((j) => {
+      const jid = randomUUID();
+      return `('${jid}', '${esc(j.title)}', '${esc(j.company)}', '${esc(j.location)}', ${j.salary_min}, ${j.salary_max}, '${esc(j.job_type)}', '${j.platform}', '${esc(j.url)}', '${esc(j.description)}', '${j.posted_date}', '${now}')`;
+    });
 
     if (values.length > 0) {
       await queryDatabricks(
@@ -238,9 +256,10 @@ export async function POST(req: NextRequest) {
       query,
       location,
       sourceResults,
-      total_scraped: allJobs.length,
+      total_scraped: uniqueJobs.length,
+      total_new: newJobs.length,
       total_inserted: values.length,
-      jobs: allJobs.slice(0, 50).map((j) => ({
+      jobs: uniqueJobs.slice(0, 50).map((j) => ({
         title: j.title,
         company: j.company,
         location: j.location,
