@@ -8,6 +8,8 @@ import KanbanBoard from "@/components/KanbanBoard";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import EmailFeed from "@/components/EmailFeed";
 import JobDiscovery from "@/components/JobDiscovery";
+import AboutPanel from "@/components/AboutPanel";
+import DeckPanel from "@/components/DeckPanel";
 import { ApplicationWithJob, Analytics, Job } from "@/lib/types";
 
 export default function Home() {
@@ -77,7 +79,7 @@ export default function Home() {
         <h1 className="sr-only">JobPilot personal job analytics</h1>
 
         <>
-          <KpiStrip items={kpis} />
+          {tab !== "about" && tab !== "deck" && <KpiStrip items={kpis} />}
           {tab === "jobs" && (
             <JobDiscovery jobs={jobs} onRefresh={loadData} />
           )}
@@ -88,6 +90,8 @@ export default function Home() {
             <AnalyticsPanel analytics={analytics} />
           )}
           {tab === "emails" && <EmailFeed emails={emails} />}
+          {tab === "about" && <AboutPanel />}
+          {tab === "deck" && <DeckPanel />}
         </>
       </main>
       <StatusFooter onSync={loadData} />
