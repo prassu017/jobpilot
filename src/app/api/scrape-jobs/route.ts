@@ -86,7 +86,7 @@ function parseLinkedInHtml(html: string): ScrapedJob[] {
   while ((m = titlePat.exec(html)) !== null) titles.push(m[1].trim());
 
   const companies: string[] = [];
-  const compPat = /class="base-search-card__subtitle"[^>]*>(?:<[^>]*>)*([^<]+)/g;
+  const compPat = /class="hidden-nested-link"[^>]*>\s*([^<]+)/g;
   while ((m = compPat.exec(html)) !== null) companies.push(m[1].trim());
 
   const locations: string[] = [];
@@ -94,7 +94,7 @@ function parseLinkedInHtml(html: string): ScrapedJob[] {
   while ((m = locPat.exec(html)) !== null) locations.push(m[1].trim());
 
   const urls: string[] = [];
-  const urlPat = /class="base-card__full-link"[^>]*href="([^"?]+)/g;
+  const urlPat = /href="(https:\/\/www\.linkedin\.com\/jobs\/view\/[^"?&]+)/g;
   while ((m = urlPat.exec(html)) !== null) urls.push(m[1]);
 
   for (let i = 0; i < titles.length; i++) {
@@ -158,8 +158,9 @@ async function scrapeLinkedIn(
   query: string,
   location: string
 ): Promise<ScrapedJob[]> {
-  const url = `https://www.linkedin.com/jobs/search?keywords=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`;
-  const html = await fetchViaScraperApi(url);
+  const url = `https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}&start=0`;
+  const res = await fetch(url);
+  const html = await res.text();
   return html.length > 500 ? parseLinkedInHtml(html) : [];
 }
 
