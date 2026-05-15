@@ -105,7 +105,7 @@ export default function Home() {
           className="fixed bottom-20 right-6 z-[60] size-14 rounded-full bg-card border-2 border-primary/30 shadow-lg shadow-primary/10 flex items-center justify-center text-2xl hover:scale-110 hover:border-primary/60 hover:shadow-primary/20 transition-all cursor-pointer group"
           title="Open Dubsy Agent"
         >
-          <span className="group-hover:animate-bounce">🐕</span>
+          <span className="group-hover:animate-bounce">🐺</span>
         </button>
       )}
     </div>

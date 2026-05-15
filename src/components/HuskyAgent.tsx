@@ -89,7 +89,7 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="size-10 bg-primary/20 rounded-lg flex items-center justify-center text-lg">
-              🐕
+              🐺
             </div>
             <div>
               <h3 className="text-sm font-bold tracking-tight uppercase">
