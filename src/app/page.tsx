@@ -10,6 +10,7 @@ import EmailFeed from "@/components/EmailFeed";
 import JobDiscovery from "@/components/JobDiscovery";
 import AboutPanel from "@/components/AboutPanel";
 import DeckPanel from "@/components/DeckPanel";
+import HuskyAgent from "@/components/HuskyAgent";
 import { ApplicationWithJob, Analytics, Job } from "@/lib/types";
 
 export default function Home() {
@@ -79,13 +80,14 @@ export default function Home() {
         <h1 className="sr-only">JobPilot personal job analytics</h1>
 
         <>
-          {tab !== "about" && tab !== "deck" && <KpiStrip items={kpis} />}
+          {tab !== "about" && tab !== "deck" && tab !== "husky" && <KpiStrip items={kpis} />}
           {tab === "jobs" && (
             <JobDiscovery jobs={jobs} onRefresh={loadData} />
           )}
           {tab === "pipeline" && (
             <KanbanBoard applications={applications} />
           )}
+          {tab === "husky" && <HuskyAgent onDataUpdate={loadData} />}
           {tab === "analytics" && analytics && (
             <AnalyticsPanel analytics={analytics} />
           )}
