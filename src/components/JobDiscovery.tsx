@@ -15,14 +15,6 @@ const PLATFORM_BADGE: Record<string, string> = {
 const EXPERIENCE_LEVELS = ["All Levels", "Entry", "Mid", "Senior", "Lead/Staff"];
 const WORK_MODES = ["All", "Remote", "Hybrid", "On-site"];
 
-interface Filters {
-  search: string;
-  location: string;
-  experience: string;
-  workMode: string;
-  platform: string;
-}
-
 export default function JobDiscovery({
   jobs,
   onRefresh,
@@ -30,18 +22,14 @@ export default function JobDiscovery({
   jobs: Job[];
   onRefresh: () => void;
 }) {
-  const [filters, setFilters] = useState<Filters>({
-    search: "",
-    location: "",
-    experience: "All Levels",
-    workMode: "All",
-    platform: "all",
-  });
-  const [scrapeQuery, setScrapeQuery] = useState("software engineer");
-  const [scrapeLocation, setScrapeLocation] = useState("Seattle, WA");
+  const [query, setQuery] = useState("software engineer");
+  const [location, setLocation] = useState("Seattle, WA");
   const [scrapeSources, setScrapeSources] = useState<string[]>(["indeed", "linkedin"]);
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<string | null>(null);
+  const [experience, setExperience] = useState("All Levels");
+  const [workMode, setWorkMode] = useState("All");
+  const [platformFilter, setPlatformFilter] = useState("all");
   const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
   const [applyingJob, setApplyingJob] = useState<string | null>(null);
 
@@ -59,8 +47,8 @@ export default function JobDiscovery({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          query: scrapeQuery,
-          location: scrapeLocation,
+          query,
+          location,
           sources: scrapeSources,
         }),
       });
@@ -108,9 +96,9 @@ export default function JobDiscovery({
     return true;
   }
 
-  function matchesWorkMode(location: string, mode: string): boolean {
+  function matchesWorkMode(loc: string, mode: string): boolean {
     if (mode === "All") return true;
-    const l = location.toLowerCase();
+    const l = loc.toLowerCase();
     if (mode === "Remote") return l.includes("remote");
     if (mode === "Hybrid") return l.includes("hybrid");
     if (mode === "On-site") return !l.includes("remote") && !l.includes("hybrid");
@@ -119,14 +107,14 @@ export default function JobDiscovery({
 
   const filtered = useMemo(() => {
     return jobs.filter((j) => {
-      if (filters.search && !j.title.toLowerCase().includes(filters.search.toLowerCase()) && !j.company.toLowerCase().includes(filters.search.toLowerCase())) return false;
-      if (filters.location && !j.location.toLowerCase().includes(filters.location.toLowerCase())) return false;
-      if (!matchesExperience(j.title, filters.experience)) return false;
-      if (!matchesWorkMode(j.location, filters.workMode)) return false;
-      if (filters.platform !== "all" && j.platform !== filters.platform) return false;
+      if (query && !j.title.toLowerCase().includes(query.toLowerCase()) && !j.company.toLowerCase().includes(query.toLowerCase())) return false;
+      if (location && !j.location.toLowerCase().includes(location.toLowerCase())) return false;
+      if (!matchesExperience(j.title, experience)) return false;
+      if (!matchesWorkMode(j.location, workMode)) return false;
+      if (platformFilter !== "all" && j.platform !== platformFilter) return false;
       return true;
     });
-  }, [jobs, filters]);
+  }, [jobs, query, location, experience, workMode, platformFilter]);
 
   const platforms = [...new Set(jobs.map((j) => j.platform))];
 
@@ -146,33 +134,39 @@ export default function JobDiscovery({
 
   return (
     <section className="space-y-6 animate-in">
-      {/* Scrape panel */}
+      {/* Unified search panel */}
       <div className="bg-card border border-border rounded-lg p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold tracking-tight uppercase">
-            Scrape Live Jobs
+            Search Jobs
           </h3>
-          <div className="flex gap-2">
-            {[
-              { id: "indeed", label: "Indeed", active: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
-              { id: "linkedin", label: "LinkedIn", active: "bg-sky-500/20 text-sky-400 border-sky-500/30" },
-              { id: "simplyhired", label: "SimplyHired", active: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
-            ].map((s) => (
-              <button
-                key={s.id}
-                onClick={() => toggleSource(s.id)}
-                className={cn(
-                  "text-[10px] font-mono px-3 py-1 rounded-full border uppercase tracking-wider transition-all",
-                  scrapeSources.includes(s.id)
-                    ? s.active
-                    : "bg-white/5 text-muted-foreground border-white/5 hover:text-foreground"
-                )}
-              >
-                {s.label}
-              </button>
-            ))}
+          <div className="flex items-center gap-3">
+            <div className="flex gap-2">
+              {[
+                { id: "indeed", label: "Indeed", active: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
+                { id: "linkedin", label: "LinkedIn", active: "bg-sky-500/20 text-sky-400 border-sky-500/30" },
+                { id: "simplyhired", label: "SimplyHired", active: "bg-orange-500/20 text-orange-400 border-orange-500/30" },
+              ].map((s) => (
+                <button
+                  key={s.id}
+                  onClick={() => toggleSource(s.id)}
+                  className={cn(
+                    "text-[10px] font-mono px-3 py-1 rounded-full border uppercase tracking-wider transition-all",
+                    scrapeSources.includes(s.id)
+                      ? s.active
+                      : "bg-white/5 text-muted-foreground border-white/5 hover:text-foreground"
+                  )}
+                >
+                  {s.label}
+                </button>
+              ))}
+            </div>
+            <span className="text-[10px] font-mono text-primary uppercase tracking-widest">
+              {filtered.length} results
+            </span>
           </div>
         </div>
+
         <div className="flex gap-3">
           <div className="relative flex-1">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
@@ -180,80 +174,64 @@ export default function JobDiscovery({
             </span>
             <input
               type="text"
-              value={scrapeQuery}
-              onChange={(e) => setScrapeQuery(e.target.value)}
-              placeholder="Job title or keywords..."
-              className="w-full pl-20 pr-4 h-11 bg-card border border-border rounded-lg text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleScrape()}
+              placeholder="Job title, company, or keywords..."
+              className="w-full pl-20 pr-4 h-11 bg-background border border-border rounded-lg text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
             />
           </div>
-          <div className="relative w-48">
+          <div className="relative w-56">
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
               Loc
             </span>
             <input
               type="text"
-              value={scrapeLocation}
-              onChange={(e) => setScrapeLocation(e.target.value)}
-              placeholder="Location..."
-              className="w-full pl-14 pr-4 h-11 bg-card border border-border rounded-lg text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && handleScrape()}
+              placeholder="City, state..."
+              className="w-full pl-14 pr-4 h-11 bg-background border border-border rounded-lg text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
             />
           </div>
           <button
             onClick={handleScrape}
             disabled={scraping || scrapeSources.length === 0}
-            className="h-11 px-5 rounded-lg bg-primary text-primary-foreground text-xs font-mono uppercase tracking-widest hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
+            className="h-11 px-6 rounded-lg bg-primary text-primary-foreground text-xs font-mono uppercase tracking-widest hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
           >
-            {scraping ? "Scraping..." : `Search ${scrapeSources.length} source${scrapeSources.length !== 1 ? "s" : ""}`}
+            {scraping ? "Searching..." : "Search"}
           </button>
         </div>
-        {scrapeResult && (
-          <div className="text-[11px] font-mono text-primary uppercase tracking-wider">
-            {scrapeResult}
-          </div>
-        )}
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <input
-          type="text"
-          placeholder="Search roles, companies..."
-          value={filters.search}
-          onChange={(e) => setFilters({ ...filters, search: e.target.value })}
-          className="flex-1 min-w-[200px] h-9 px-3 bg-card border border-border rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
-        />
-        <input
-          type="text"
-          placeholder="Location"
-          value={filters.location}
-          onChange={(e) => setFilters({ ...filters, location: e.target.value })}
-          className="w-36 h-9 px-3 bg-card border border-border rounded-lg text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
-        />
-        <select
-          value={filters.experience}
-          onChange={(e) => setFilters({ ...filters, experience: e.target.value })}
-          className="h-9 px-3 bg-card border border-border rounded-lg text-xs font-mono focus:outline-none focus:border-primary/50"
-        >
-          {EXPERIENCE_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
-        </select>
-        <select
-          value={filters.workMode}
-          onChange={(e) => setFilters({ ...filters, workMode: e.target.value })}
-          className="h-9 px-3 bg-card border border-border rounded-lg text-xs font-mono focus:outline-none focus:border-primary/50"
-        >
-          {WORK_MODES.map((m) => <option key={m} value={m}>{m}</option>)}
-        </select>
-        <select
-          value={filters.platform}
-          onChange={(e) => setFilters({ ...filters, platform: e.target.value })}
-          className="h-9 px-3 bg-card border border-border rounded-lg text-xs font-mono focus:outline-none focus:border-primary/50"
-        >
-          <option value="all">All Sources</option>
-          {platforms.map((p) => <option key={p} value={p}>{p}</option>)}
-        </select>
-        <span className="text-[10px] font-mono text-primary uppercase tracking-widest">
-          {filtered.length} jobs
-        </span>
+        <div className="flex items-center gap-3 pt-1">
+          <select
+            value={experience}
+            onChange={(e) => setExperience(e.target.value)}
+            className="h-8 px-3 bg-background border border-border rounded text-[10px] font-mono uppercase focus:outline-none focus:border-primary/50"
+          >
+            {EXPERIENCE_LEVELS.map((l) => <option key={l} value={l}>{l}</option>)}
+          </select>
+          <select
+            value={workMode}
+            onChange={(e) => setWorkMode(e.target.value)}
+            className="h-8 px-3 bg-background border border-border rounded text-[10px] font-mono uppercase focus:outline-none focus:border-primary/50"
+          >
+            {WORK_MODES.map((m) => <option key={m} value={m}>{m}</option>)}
+          </select>
+          <select
+            value={platformFilter}
+            onChange={(e) => setPlatformFilter(e.target.value)}
+            className="h-8 px-3 bg-background border border-border rounded text-[10px] font-mono uppercase focus:outline-none focus:border-primary/50"
+          >
+            <option value="all">All Sources</option>
+            {platforms.map((p) => <option key={p} value={p}>{p}</option>)}
+          </select>
+          {scrapeResult && (
+            <span className="text-[11px] font-mono text-primary uppercase tracking-wider ml-auto">
+              {scrapeResult}
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Job grid */}
@@ -279,7 +257,7 @@ export default function JobDiscovery({
                 </div>
                 <span
                   className={cn(
-                    "px-2 py-0.5 rounded-full border text-[10px] font-mono uppercase tracking-wider shrink-0",
+                    "px-2 py-0.5 rounded-full border text-[10px] font-mono uppercase tracking-wider shrink-0 ml-2",
                     PLATFORM_BADGE[job.platform] || "bg-white/5 text-muted-foreground border-white/5"
                   )}
                 >
@@ -324,7 +302,7 @@ export default function JobDiscovery({
         {filtered.length === 0 && (
           <div className="col-span-full h-32 border-2 border-dashed border-border rounded-lg flex items-center justify-center">
             <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-              No matches — try adjusting filters or scrape new jobs
+              No matches — try a different search or adjust filters
             </span>
           </div>
         )}
