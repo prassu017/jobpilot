@@ -80,6 +80,19 @@ const tools: Anthropic.Tool[] = [
       properties: {},
     },
   },
+  {
+    name: "generate_resume",
+    description: "Generate a tailored, ATS-friendly resume as a downloadable HTML file. Use this when the user asks to create, generate, build, or update their resume. The resume will be tailored to the target role and company.",
+    input_schema: {
+      type: "object" as const,
+      properties: {
+        target_role: { type: "string", description: "The job title/role to tailor the resume for" },
+        target_company: { type: "string", description: "The company to tailor the resume for (optional)" },
+        user_context: { type: "string", description: "Additional context about the user's experience, skills, and background to include" },
+      },
+      required: ["target_role"],
+    },
+  },
 ];
 
 export async function POST(req: NextRequest) {
@@ -154,6 +167,7 @@ Gmail connected: ${isConnected() ? "Yes" : "No"}`;
 
     let currentMessages = messages;
     let finalResponse = "";
+    let resumeHtml: string | null = null;
 
     for (let i = 0; i < 5; i++) {
       const response = await anthropic.messages.create({
@@ -179,6 +193,28 @@ Gmail connected: ${isConnected() ? "Yes" : "No"}`;
             result = await searchEmails(input.query, input.max_results || 10);
           } else if (block.name === "get_tracker") {
             result = readTracker();
+          } else if (block.name === "generate_resume") {
+            const input = block.input as { target_role: string; target_company?: string; user_context?: string };
+            try {
+              const resumeRes = await fetch(new URL("/api/generate-resume", req.url).toString(), {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  targetRole: input.target_role,
+                  targetCompany: input.target_company || "",
+                  userContext: input.user_context || "",
+                }),
+              });
+              const resumeData = await resumeRes.json();
+              if (resumeData.html) {
+                resumeHtml = resumeData.html;
+                result = "Resume generated successfully. The user can now download it.";
+              } else {
+                result = "Failed to generate resume: " + (resumeData.error || "Unknown error");
+              }
+            } catch (e) {
+              result = "Failed to generate resume: " + (e as Error).message;
+            }
           }
           toolResults.push({
             type: "tool_result",
@@ -195,7 +231,7 @@ Gmail connected: ${isConnected() ? "Yes" : "No"}`;
       ];
     }
 
-    return NextResponse.json({ response: finalResponse });
+    return NextResponse.json({ response: finalResponse, resumeHtml });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }

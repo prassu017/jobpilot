@@ -30,6 +30,7 @@ interface TrackerData {
 interface ChatMessage {
   role: "user" | "assistant";
   content: string;
+  resumeHtml?: string;
 }
 
 const STAGE_STYLE: Record<string, string> = {
@@ -131,7 +132,7 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
       });
       const data = await res.json();
       if (data.response) {
-        setMessages([...newMessages, { role: "assistant", content: data.response }]);
+        setMessages([...newMessages, { role: "assistant", content: data.response, resumeHtml: data.resumeHtml || undefined }]);
       } else {
         setMessages([...newMessages, { role: "assistant", content: data.error || "Something went wrong." }]);
       }
@@ -281,7 +282,39 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
                   )}
                 >
                   {msg.role === "assistant" ? (
-                    <div className="space-y-2 whitespace-pre-wrap">{msg.content}</div>
+                    <div className="space-y-2">
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                      {msg.resumeHtml && (
+                        <div className="flex gap-2 mt-3 pt-3 border-t border-border">
+                          <button
+                            onClick={() => {
+                              const blob = new Blob([msg.resumeHtml!], { type: "text/html" });
+                              const url = URL.createObjectURL(blob);
+                              const a = document.createElement("a");
+                              a.href = url;
+                              a.download = "resume.html";
+                              a.click();
+                              URL.revokeObjectURL(url);
+                            }}
+                            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-mono uppercase tracking-widest hover:bg-primary/90 transition-colors"
+                          >
+                            Download Resume
+                          </button>
+                          <button
+                            onClick={() => {
+                              const w = window.open("", "_blank");
+                              if (w) {
+                                w.document.write(msg.resumeHtml!);
+                                w.document.close();
+                              }
+                            }}
+                            className="px-3 py-1.5 rounded-lg border border-border text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                          >
+                            Preview
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   ) : (
                     msg.content
                   )}
