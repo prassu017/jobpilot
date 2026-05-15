@@ -140,7 +140,7 @@ export default function JobDiscovery({
   function formatSalary(job: Job) {
     const min = parseInt(job.salary_min);
     const max = parseInt(job.salary_max);
-    if (max > 0) return `$${min.toLocaleString()} – $${max.toLocaleString()}`;
+    if (max > 0) return `$${min.toLocaleString()} - $${max.toLocaleString()}`;
     return null;
   }
 
@@ -340,7 +340,7 @@ export default function JobDiscovery({
         {filtered.length === 0 && (
           <div className="col-span-full h-32 border-2 border-dashed border-border rounded-lg flex items-center justify-center">
             <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
-              No matches — try a different search or adjust filters
+              No matches - try a different search or adjust filters
             </span>
           </div>
         )}

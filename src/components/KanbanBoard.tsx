@@ -82,7 +82,7 @@ export default function KanbanBoard({
                   const salaryMax = parseInt(a.salary_max);
                   const salary =
                     salaryMax > 0
-                      ? `$${salaryMin.toLocaleString()} – $${salaryMax.toLocaleString()}`
+                      ? `$${salaryMin.toLocaleString()} - $${salaryMax.toLocaleString()}`
                       : "";
                   return (
                     <article

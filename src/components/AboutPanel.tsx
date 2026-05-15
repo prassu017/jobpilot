@@ -11,7 +11,7 @@ const TOOLS = [
   { name: "Claude AI", desc: "Email classification agent with confidence scoring and pipeline automation" },
   { name: "ScraperAPI", desc: "Real-time job scraping from Indeed, LinkedIn, and SimplyHired" },
   { name: "Next.js", desc: "Full-stack React framework with API routes, deployed on Vercel" },
-  { name: "Lovable", desc: "AI-generated UI design — dark command-deck theme" },
+  { name: "Lovable", desc: "AI-generated UI design, dark command-deck theme" },
   { name: "Vercel", desc: "Zero-config deployment with GitHub integration" },
 ];
 

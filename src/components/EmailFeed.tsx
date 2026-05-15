@@ -89,7 +89,7 @@ export default function EmailFeed({ emails }: { emails: EmailWithJob[] }) {
                   <p className="text-sm font-medium truncate">
                     <span className="text-muted-foreground">{e.sender} ·</span>{" "}
                     {e.company}
-                    <span className="text-muted-foreground"> — </span>
+                    <span className="text-muted-foreground"> - </span>
                     {e.subject}
                   </p>
                   <p className="text-xs text-muted-foreground truncate mt-0.5">
