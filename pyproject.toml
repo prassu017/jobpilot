@@ -1,0 +1,9 @@
+[project]
+name = "ai-spark-tracker"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "databricks-sql-connector>=4.2.6",
+]
