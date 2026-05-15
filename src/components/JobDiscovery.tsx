@@ -91,7 +91,7 @@ export default function JobDiscovery({
       const res = await fetch("/api/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ job_id: job.job_id }),
+        body: JSON.stringify({ job_id: job.job_id, status: "SAVED" }),
       });
       const data = await res.json();
       if (data.success) {

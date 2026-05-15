@@ -32,19 +32,21 @@ export async function GET() {
     });
 
     const total = parseInt(totalRes.data[0][0]);
+    const saved = status_breakdown["SAVED"] || 0;
+    const active = total - saved;
     const responded =
-      total - (status_breakdown["APPLIED"] || 0);
+      active - (status_breakdown["APPLIED"] || 0);
     const interviews =
       (status_breakdown["INTERVIEW"] || 0) + (status_breakdown["OFFER"] || 0);
 
     const analytics: Analytics = {
       total_applications: total,
       status_breakdown,
-      response_rate: total > 0 ? (responded / total) * 100 : 0,
-      interview_rate: total > 0 ? (interviews / total) * 100 : 0,
+      response_rate: active > 0 ? (responded / active) * 100 : 0,
+      interview_rate: active > 0 ? (interviews / active) * 100 : 0,
       offer_rate:
-        total > 0
-          ? ((status_breakdown["OFFER"] || 0) / total) * 100
+        active > 0
+          ? ((status_breakdown["OFFER"] || 0) / active) * 100
           : 0,
       platform_breakdown,
     };

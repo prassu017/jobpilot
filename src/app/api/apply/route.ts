@@ -29,15 +29,17 @@ export async function POST(req: NextRequest) {
     const applicationId = randomUUID();
     const now = new Date().toISOString().replace("T", " ").split(".")[0];
 
+    const status = body.status === "APPLIED" ? "APPLIED" : "SAVED";
+
     await queryDatabricks(`
       INSERT INTO default.jobpilot_applications
-      VALUES ('${applicationId}', '${esc(job_id)}', 'APPLIED', '${now}', '${now}', '')
+      VALUES ('${applicationId}', '${esc(job_id)}', '${status}', '${now}', '${now}', '')
     `);
 
     const historyId = randomUUID();
     await queryDatabricks(`
       INSERT INTO default.jobpilot_status_history
-      VALUES ('${historyId}', '${applicationId}', 'SAVED', 'APPLIED', '${now}', 'Application submitted', 'You applied for this position')
+      VALUES ('${historyId}', '${applicationId}', 'NEW', '${status}', '${now}', '${status === "APPLIED" ? "Application submitted" : "Job saved to tracker"}', '${status === "APPLIED" ? "You applied for this position" : "You saved this job for tracking"}')
     `);
 
     const job = await queryDatabricks(
