@@ -27,6 +27,7 @@ export default function JobDiscovery({
   const [scrapeSources, setScrapeSources] = useState<string[]>(["indeed", "linkedin"]);
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<string | null>(null);
+  const [freshJobs, setFreshJobs] = useState<Job[] | null>(null);
   const [experience, setExperience] = useState("All Levels");
   const [workMode, setWorkMode] = useState("All");
   const [platformFilter, setPlatformFilter] = useState("all");
@@ -57,10 +58,26 @@ export default function JobDiscovery({
         const parts = Object.entries(data.sourceResults as Record<string, number>)
           .map(([s, n]) => `${s}: ${n}`)
           .join(", ");
-        setScrapeResult(`Found ${data.total_scraped} jobs (${parts})`);
+        setScrapeResult(`Found ${data.total_scraped} new jobs (${parts})`);
         onRefresh();
+        if (data.jobs && data.jobs.length > 0) {
+          setFreshJobs(data.jobs.map((j: any, i: number) => ({
+            job_id: `fresh-${Date.now()}-${i}`,
+            title: j.title,
+            company: j.company,
+            location: j.location,
+            platform: j.platform,
+            url: j.url,
+            salary_min: "0",
+            salary_max: "0",
+            job_type: "Full-time",
+            posted_date: new Date().toISOString().split("T")[0],
+            description: "",
+          })));
+        }
       } else {
         setScrapeResult(`Error: ${data.error}`);
+        setFreshJobs(null);
       }
     } catch {
       setScrapeResult("Failed to scrape");
@@ -106,15 +123,18 @@ export default function JobDiscovery({
   }
 
   const filtered = useMemo(() => {
-    return jobs.filter((j) => {
-      if (query && !j.title.toLowerCase().includes(query.toLowerCase()) && !j.company.toLowerCase().includes(query.toLowerCase())) return false;
-      if (location && !j.location.toLowerCase().includes(location.toLowerCase())) return false;
+    const source = freshJobs || jobs;
+    return source.filter((j) => {
+      if (!freshJobs) {
+        if (query && !j.title.toLowerCase().includes(query.toLowerCase()) && !j.company.toLowerCase().includes(query.toLowerCase())) return false;
+        if (location && !j.location.toLowerCase().includes(location.toLowerCase())) return false;
+      }
       if (!matchesExperience(j.title, experience)) return false;
       if (!matchesWorkMode(j.location, workMode)) return false;
       if (platformFilter !== "all" && j.platform !== platformFilter) return false;
       return true;
     });
-  }, [jobs, query, location, experience, workMode, platformFilter]);
+  }, [jobs, freshJobs, query, location, experience, workMode, platformFilter]);
 
   const platforms = [...new Set(jobs.map((j) => j.platform))];
 
@@ -230,6 +250,14 @@ export default function JobDiscovery({
             <span className="text-[11px] font-mono text-primary uppercase tracking-wider ml-auto">
               {scrapeResult}
             </span>
+          )}
+          {freshJobs && (
+            <button
+              onClick={() => setFreshJobs(null)}
+              className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Show all jobs →
+            </button>
           )}
         </div>
       </div>

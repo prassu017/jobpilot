@@ -16,10 +16,8 @@ export default function Home() {
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [emails, setEmails] = useState<any[]>([]);
   const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
 
   async function loadData() {
-    setLoading(true);
     try {
       const [appsRes, analyticsRes, emailsRes, jobsRes] = await Promise.all([
         fetch("/api/applications"),
@@ -34,7 +32,6 @@ export default function Home() {
     } catch (e) {
       console.error("Failed to load data:", e);
     }
-    setLoading(false);
   }
 
   useEffect(() => {
@@ -79,30 +76,19 @@ export default function Home() {
       <main className="max-w-[1440px] mx-auto p-6 pb-32 space-y-8">
         <h1 className="sr-only">JobPilot personal job analytics</h1>
 
-        {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="text-center space-y-3">
-              <div className="size-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-              <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-                Connecting to Databricks...
-              </p>
-            </div>
-          </div>
-        ) : (
-          <>
-            <KpiStrip items={kpis} />
-            {tab === "jobs" && (
-              <JobDiscovery jobs={jobs} onRefresh={loadData} />
-            )}
-            {tab === "pipeline" && (
-              <KanbanBoard applications={applications} />
-            )}
-            {tab === "analytics" && analytics && (
-              <AnalyticsPanel analytics={analytics} />
-            )}
-            {tab === "emails" && <EmailFeed emails={emails} />}
-          </>
-        )}
+        <>
+          <KpiStrip items={kpis} />
+          {tab === "jobs" && (
+            <JobDiscovery jobs={jobs} onRefresh={loadData} />
+          )}
+          {tab === "pipeline" && (
+            <KanbanBoard applications={applications} />
+          )}
+          {tab === "analytics" && analytics && (
+            <AnalyticsPanel analytics={analytics} />
+          )}
+          {tab === "emails" && <EmailFeed emails={emails} />}
+        </>
       </main>
       <StatusFooter onSync={loadData} />
     </div>
