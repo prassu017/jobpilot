@@ -49,7 +49,7 @@ Floyd Snider,Application,APPLIED,2026-01-22,paylocity,,,,Application submitted
 Distyl AI,AI Engineer New Graduate,REJECTED,2026-01-18,direct,,,,Rejection received
 Western Digital,Early Career Data Engineer,REJECTED,2026-01-16,smartrecruiters,,,,Rejection received
 Western Digital,Early Career Data Engineer,APPLIED,2026-01-14,smartrecruiters,,,,Application submitted
-Bloom Energy,Business Data Analyst Intern,APPLIED,2026-01-04,workday,,,,Application submitted
+Bloom Energy,Business Data Analyst Intern,REJECTED,2026-01-04,workday,,,,Role no longer being filled
 Stuller,Customer Data Analyst Intern,INTERVIEW,2026-01-03,direct,,,,Virtual screening with Katie Gilbert
 Factory,Application,REJECTED,2025-12-28,ashby,,,,Rejection received
 Tenable,AI Engineer,REJECTED,2026-01-07,greenhouse,,,,Rejection received
@@ -91,13 +91,13 @@ Anthelion Capital,Machine Learning Engineer,INTERVIEW,2025-11-04,ashby,,,,Interv
 Becker's Healthcare,Internship,INTERVIEW,2025-08-11,direct,,,,Screening call scheduled
 2nd Order Solutions,Application,APPLIED,2025-08-08,lever,,,,Application submitted
 MLP,Business Development Intern,APPLIED,2025-08-07,direct,New York NY,,,Application submitted
-Pentair,Product Management Leadership Development Internship,APPLIED,2025-08-07,direct,,,,Application submitted
+Pentair,Product Management Leadership Development Internship,REJECTED,2025-08-07,direct,,,,Rejection received
 PCG,Application,APPLIED,2025-08-22,workday,,,,Application submitted
 EquipmentShare,Financial Analyst,APPLIED,2025-08-11,greenhouse,,,,Application submitted
 Michels,Application,APPLIED,2025-08-07,direct,,,,Application submitted
 T. Marzetti Company,Application,APPLIED,2025-08-07,icims,,,,Application submitted
-Booz Allen Hamilton,Data Engineer,APPLIED,2025-08-06,workday,,,,Application submitted
-AT&T,Lead Advanced Analytics,APPLIED,2025-08-06,workday,,,,Application submitted
+Booz Allen Hamilton,Data Engineer,REJECTED,2025-08-06,workday,,,,Rejection received
+AT&T,Lead Advanced Analytics,REJECTED,2025-08-06,workday,,,,Rejection received
 TruStage,Analyst Post Sale Analytics,APPLIED,2025-08-06,workday,,,,Application submitted
 Astemo,Associate Requirements Engineer,APPLIED,2025-08-02,workday,,,,Application submitted
 The Trade Desk,Application,APPLIED,2025-08-02,direct,,,,Application submitted
@@ -129,7 +129,7 @@ United Soccer League,BI UWEP Internship,APPLIED,2025-07-20,teamworkonline,,,,App
 Cambium Learning,Application,APPLIED,2025-07-20,workday,,,,Application submitted
 Infrrd,Python Intern,APPLIED,2025-07-20,bamboohr,,,,Application submitted
 BILL,ML Engineer Intern 2026,APPLIED,2025-07-20,direct,,,,Application submitted
-QuantCo,Application,APPLIED,2025-07-20,lever,,,,Application submitted
+QuantCo,Application,REJECTED,2025-07-20,lever,,,,Rejection received
 Delta Air Lines,Intern Commercial Strategy 2026,SCREENING,2025-07-10,direct,,,,Assessment invited
 Caterpillar,2026 Summer Corporate Intern Digital and Analytics,APPLIED,2025-07-14,workday,,,,Application submitted
 Akuna Capital,Quantitative Development & Strategy Intern 2026,APPLIED,2025-07-14,greenhouse,,,,Application submitted
@@ -149,7 +149,7 @@ SentiLink,Fraud Intelligence Analyst,REJECTED,2026-04-10,ashby,,,,Rejection rece
 SentiLink,Applied ML Scientist,REJECTED,2026-03-25,ashby,,,,Rejection received
 Visa,Application (Apr),APPLIED,2026-04-10,smartrecruiters,,,,Application submitted
 Visa,Application (Jan),APPLIED,2026-01-15,smartrecruiters,,,,Application submitted
-Marsh,Product Manager,APPLIED,2026-04-09,workday,,,,Application submitted
+Marsh,Product Manager,REJECTED,2026-04-09,workday,,,,Not selected after evaluation
 Frontline Education,Product Manager / Senior PM,REJECTED,2026-04-06,jobvite,,,,Rejection received
 Jobright.ai,Product Manager Early Career,REJECTED,2026-04-04,direct,,,,Rejection received
 Hive,Software Engineer Backend,APPLIED,2026-04-03,lever,,,,Application submitted
@@ -222,3 +222,11 @@ BlackRock,2026 Summer Internship Data Analytics Modeling,SCREENING,2025-07-23,di
 Varsity Tutors,Tutor,INTERVIEW,2025-07-26,hirevue,,,,Video interview link sent
 Reinforcelabs,Coding Interview,INTERVIEW,2026-02-02,direct,,,,Completed coding interview with Shiming
 UW Interfolio,Student Support Assistant,INTERVIEW,2025-06-20,direct,Seattle WA,,,Interview scheduled with Diana Silverio
+Coca-Cola,Data Analyst Emerging Category Intern,REJECTED,2026-02-27,workday,,,,Rejection received
+Chevron,IT Information and Analytics Full Time,REJECTED,2025-12-10,workday,,,,Rejection received
+Nordstrom,Data Science Corporate Internship,REJECTED,2025-11-21,workday,,,,Rejection received
+Peloton,Product Analyst,REJECTED,2025-10-17,greenhouse,,,,Rejection received
+ZS,BTS Associate Consultant Intern,REJECTED,2025-10-11,icims,,,,Application follow up rejection
+Sword Health,Data Science Trainee,REJECTED,2025-08-29,lever,,,,Role officially closed
+Coca-Cola,Data Analyst Intern,APPLIED,2026-02-27,workday,,,,Application submitted
+Nordstrom,Data Science Corporate Internship,APPLIED,2025-09-06,workday,,,,Application submitted
