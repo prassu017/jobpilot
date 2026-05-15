@@ -2,6 +2,8 @@
 
 const TEAM = [
   { name: "Prasanna", role: "Full-Stack Engineer", focus: "Backend, Databricks, API integration" },
+  { name: "Divya Varshini Moturi", role: "Data Engineer", focus: "Data pipelines, Databricks, analytics" },
+  { name: "Huy Nguyen", role: "Data Analyst", focus: "Data analysis, insights, reporting" },
 ];
 
 const TOOLS = [
