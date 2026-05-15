@@ -7,7 +7,7 @@ export type Tab = "jobs" | "pipeline" | "husky" | "analytics" | "emails" | "abou
 const TABS: { id: Tab; label: string }[] = [
   { id: "jobs", label: "Jobs" },
   { id: "pipeline", label: "Pipeline" },
-  { id: "husky", label: "Husky" },
+  { id: "husky", label: "Dubsy" },
   { id: "analytics", label: "Analytics" },
   { id: "emails", label: "Email Feed" },
   { id: "about", label: "About" },

@@ -93,7 +93,7 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
             </div>
             <div>
               <h3 className="text-sm font-bold tracking-tight uppercase">
-                Husky Agent
+                Dubsy Agent
               </h3>
               <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
                 AI-powered email scanner + application tracker
@@ -123,10 +123,10 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
                 {scanning ? (
                   <span className="flex items-center gap-2">
                     <span className="inline-block w-2 h-2 bg-primary-foreground rounded-full animate-pulse" />
-                    Husky is scanning...
+                    Dubsy is scanning...
                   </span>
                 ) : (
-                  "Run Husky Scan"
+                  "Run Dubsy Scan"
                 )}
               </button>
             )}
@@ -172,7 +172,7 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
             <div className="text-center space-y-2">
               <p className="text-sm text-muted-foreground">No applications tracked yet</p>
               <p className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
-                {gmailConnected ? "Click 'Run Husky Scan' to scan your Gmail" : "Connect Gmail to get started"}
+                {gmailConnected ? "Click 'Run Dubsy Scan' to scan your Gmail" : "Connect Gmail to get started"}
               </p>
             </div>
           </div>

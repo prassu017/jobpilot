@@ -122,7 +122,7 @@ export async function POST() {
       return { subject, sender, date, body };
     });
 
-    const prompt = `You are Husky, a job application tracking assistant. Analyze these emails and extract job application activity.
+    const prompt = `You are Dubsy, a job application tracking assistant. Analyze these emails and extract job application activity.
 
 For each email that is related to a job application, extract:
 - company: the company name
