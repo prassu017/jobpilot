@@ -31,8 +31,8 @@ export default function JobDiscovery({
   const [experience, setExperience] = useState("All Levels");
   const [workMode, setWorkMode] = useState("All");
   const [platformFilter, setPlatformFilter] = useState("all");
-  const [appliedJobs, setAppliedJobs] = useState<Set<string>>(new Set());
-  const [applyingJob, setApplyingJob] = useState<string | null>(null);
+  const [trackedJobs, setTrackedJobs] = useState<Set<string>>(new Set());
+  const [trackingJob, setTrackingJob] = useState<string | null>(null);
 
   function toggleSource(source: string) {
     setScrapeSources((prev) =>
@@ -85,9 +85,8 @@ export default function JobDiscovery({
     setScraping(false);
   }
 
-  async function handleApply(job: Job) {
-    setApplyingJob(job.job_id);
-    if (job.url) window.open(job.url, "_blank");
+  async function handleTrack(job: Job) {
+    setTrackingJob(job.job_id);
     try {
       const res = await fetch("/api/apply", {
         method: "POST",
@@ -96,11 +95,11 @@ export default function JobDiscovery({
       });
       const data = await res.json();
       if (data.success) {
-        setAppliedJobs((prev) => new Set([...prev, job.job_id]));
+        setTrackedJobs((prev) => new Set([...prev, job.job_id]));
         onRefresh();
       }
     } catch {}
-    setApplyingJob(null);
+    setTrackingJob(null);
   }
 
   function matchesExperience(title: string, level: string): boolean {
@@ -265,15 +264,15 @@ export default function JobDiscovery({
       {/* Job grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((job) => {
-          const isApplied = appliedJobs.has(job.job_id);
-          const isApplying = applyingJob === job.job_id;
+          const isTracked = trackedJobs.has(job.job_id);
+          const isTracking = trackingJob === job.job_id;
           const salary = formatSalary(job);
           return (
             <article
               key={job.job_id}
               className={cn(
                 "p-5 bg-card border rounded-lg hover:border-primary/40 transition-all space-y-4",
-                isApplied ? "border-primary/30 ring-1 ring-primary/10" : "border-border"
+                isTracked ? "border-primary/30 ring-1 ring-primary/10" : "border-border"
               )}
             >
               <div className="flex items-start justify-between">
@@ -309,17 +308,28 @@ export default function JobDiscovery({
                   <span className="text-[10px] font-mono text-muted-foreground">
                     {daysAgo(job.posted_date)}
                   </span>
-                  {isApplied ? (
-                    <span className="text-[10px] font-mono uppercase tracking-widest text-primary">
-                      Applied
+                  {job.url && (
+                    <a
+                      href={job.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      View →
+                    </a>
+                  )}
+                  {isTracked ? (
+                    <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/15 text-primary text-[10px] font-mono uppercase tracking-widest">
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5.5L4 7.5L8 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                      Tracked
                     </span>
                   ) : (
                     <button
-                      onClick={() => handleApply(job)}
-                      disabled={isApplying}
-                      className="text-[10px] font-mono uppercase tracking-widest text-primary hover:text-foreground transition-colors disabled:opacity-50"
+                      onClick={() => handleTrack(job)}
+                      disabled={isTracking}
+                      className="px-2.5 py-1 rounded-full border border-primary/30 text-[10px] font-mono uppercase tracking-widest text-primary hover:bg-primary/10 transition-all disabled:opacity-50"
                     >
-                      {isApplying ? "Applying..." : "Apply →"}
+                      {isTracking ? "Adding..." : "+ Track"}
                     </button>
                   )}
                 </div>
