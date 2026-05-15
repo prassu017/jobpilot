@@ -41,12 +41,45 @@ const STAGE_STYLE: Record<string, string> = {
   SAVED: "bg-white/5 text-muted-foreground border-white/10",
 };
 
-const SUGGESTIONS = [
-  "What's my application status summary?",
-  "Which companies haven't responded yet?",
-  "Help me prep for my next interview",
-  "Search my email for recent recruiter messages",
-];
+function getSuggestions(tracker: TrackerData | null): string[] {
+  if (!tracker || tracker.rows.length === 0) {
+    return [
+      "What can you help me with?",
+      "Help me start my job search",
+      "What makes a strong application?",
+      "Review my resume strategy",
+    ];
+  }
+
+  const suggestions: string[] = [];
+  const interviews = tracker.rows.filter((r) => r.stage === "INTERVIEW");
+  const offers = tracker.rows.filter((r) => r.stage === "OFFER");
+  const now = Date.now();
+  const stale = tracker.rows.filter((r) => {
+    if (r.stage !== "APPLIED" || !r.applied_on) return false;
+    const days = (now - new Date(r.applied_on).getTime()) / 86400000;
+    return days > 14 && days < 60;
+  });
+
+  if (interviews.length > 0) {
+    suggestions.push(`Help me prep for my ${interviews[0].company} interview`);
+  }
+  if (offers.length > 0) {
+    suggestions.push(`Help me negotiate my ${offers[0].company} offer`);
+  }
+  if (stale.length > 0) {
+    suggestions.push(`Which ${stale.length} apps need a follow-up?`);
+  }
+  suggestions.push("What patterns do you see in my rejections?");
+  if (suggestions.length < 4) {
+    suggestions.push("Give me a full status breakdown");
+  }
+  if (suggestions.length < 4) {
+    suggestions.push("What should I focus on this week?");
+  }
+
+  return suggestions.slice(0, 4);
+}
 
 export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void }) {
   const [scanning, setScanning] = useState(false);
@@ -225,7 +258,7 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-2 max-w-md w-full">
-                  {SUGGESTIONS.map((s) => (
+                  {getSuggestions(tracker).map((s) => (
                     <button
                       key={s}
                       onClick={() => sendMessage(s)}

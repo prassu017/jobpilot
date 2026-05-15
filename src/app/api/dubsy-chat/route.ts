@@ -91,21 +91,65 @@ export async function POST(req: NextRequest) {
     const { messages } = await req.json();
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
-    const trackerSummary = readTracker();
-    const lines = trackerSummary.split("\n");
+    const trackerRaw = readTracker();
+    const lines = trackerRaw.split("\n");
     const rowCount = Math.max(0, lines.length - 1);
 
-    const systemPrompt = `You are Dubsy 🐺, a smart and friendly AI assistant built into JobPilot. You help the user with anything they need — general questions, career advice, job search strategy, interview prep, resume tips, and more.
+    const rows = lines.slice(1).filter(Boolean).map((line) => {
+      const vals = line.split(",");
+      return { company: vals[0], title: vals[1], stage: vals[2], applied_on: vals[3], platform: vals[4], location: vals[5], notes: vals[8] };
+    });
 
-You also have special access to:
-1. The user's job application tracker (${rowCount} applications tracked)
-2. The user's Gmail (if connected) — you can search emails to find information
+    const stages: Record<string, number> = {};
+    const recentApps: typeof rows = [];
+    const interviews: typeof rows = [];
+    const offers: typeof rows = [];
+    const rejections: typeof rows = [];
+    const pendingFollowups: typeof rows = [];
 
-When the user asks about their applications, job status, emails, or anything that requires their data, use the available tools. For general conversation, just chat naturally.
+    const now = Date.now();
+    for (const r of rows) {
+      stages[r.stage] = (stages[r.stage] || 0) + 1;
+      if (r.stage === "INTERVIEW") interviews.push(r);
+      if (r.stage === "OFFER") offers.push(r);
+      if (r.stage === "REJECTED") rejections.push(r);
+      if (r.stage === "APPLIED" && r.applied_on) {
+        const daysAgo = (now - new Date(r.applied_on).getTime()) / 86400000;
+        if (daysAgo <= 14) recentApps.push(r);
+        if (daysAgo > 14 && daysAgo < 60) pendingFollowups.push(r);
+      }
+    }
 
-Be concise, helpful, and conversational. Use a warm but professional tone. You can use emoji sparingly.
+    const stagesStr = Object.entries(stages).map(([k, v]) => `${k}: ${v}`).join(", ");
+    const interviewList = interviews.map((r) => `${r.company} - ${r.title}`).join("; ");
+    const offerList = offers.map((r) => `${r.company} - ${r.title}`).join("; ");
+    const recentList = recentApps.slice(0, 10).map((r) => `${r.company} - ${r.title} (${r.applied_on})`).join("; ");
+    const followupList = pendingFollowups.slice(0, 15).map((r) => `${r.company} - ${r.title} (applied ${r.applied_on})`).join("; ");
 
-Current tracker summary: ${rowCount} applications tracked across various companies and stages.
+    const systemPrompt = `You are Dubsy 🐺, a smart and proactive AI career assistant built into JobPilot. You have deep knowledge of the user's job search and proactively offer insights, suggestions, and encouragement.
+
+## User's Application Data (${rowCount} total applications)
+- Stage breakdown: ${stagesStr}
+- Active interviews: ${interviewList || "None currently"}
+- Offers: ${offerList || "None yet"}
+- Recent applications (last 2 weeks): ${recentList || "None"}
+- Need follow-up (applied 2-8 weeks ago, no response): ${followupList || "None"}
+
+## Your Capabilities
+1. Full job application tracker access (use get_tracker tool for detailed data)
+2. Gmail search (if connected) to find specific emails
+3. Career coaching: interview prep, resume tips, salary negotiation, job search strategy
+4. Application analytics: identify patterns, suggest improvements
+
+## How to Behave
+- Be proactive: suggest follow-ups, prep tips, and next steps based on their data
+- When the conversation starts or the user asks for suggestions, immediately analyze their tracker and give actionable advice
+- Flag applications that need follow-up (applied 2+ weeks ago with no stage change)
+- If they have upcoming interviews, offer to help prep
+- Celebrate wins (offers, interview invites) and be encouraging about rejections
+- Be concise but warm. Use emoji sparingly.
+- When asked about specific companies, search emails for the latest correspondence
+
 Gmail connected: ${isConnected() ? "Yes" : "No"}`;
 
     let currentMessages = messages;
