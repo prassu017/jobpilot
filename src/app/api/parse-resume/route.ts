@@ -14,7 +14,8 @@ export async function POST(req: NextRequest) {
     let text = "";
 
     if (name.endsWith(".pdf")) {
-      const pdfParse = (await import("pdf-parse")).default;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const pdfParse = require("pdf-parse");
       const data = await pdfParse(buffer);
       text = data.text;
     } else if (name.endsWith(".docx") || name.endsWith(".doc")) {
