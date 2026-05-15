@@ -65,7 +65,7 @@ export function Header({
           </div>
           <div className="hidden lg:block text-[10px] font-mono text-muted-foreground">
             DEPLOYED:{" "}
-            <span className="text-foreground">DATABRICKS + CLAUDE AI</span>
+            <span className="text-foreground">LOVABLE + DATABRICKS</span>
           </div>
         </div>
       </div>
