@@ -5,28 +5,32 @@ import KanbanBoard from "@/components/KanbanBoard";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import EmailFeed from "@/components/EmailFeed";
 import SimulateButton from "@/components/SimulateButton";
-import { ApplicationWithJob, Analytics } from "@/lib/types";
+import JobDiscovery from "@/components/JobDiscovery";
+import { ApplicationWithJob, Analytics, Job } from "@/lib/types";
 
-type Tab = "kanban" | "analytics" | "emails";
+type Tab = "kanban" | "analytics" | "emails" | "jobs";
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>("kanban");
   const [applications, setApplications] = useState<ApplicationWithJob[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [emails, setEmails] = useState<any[]>([]);
+  const [jobs, setJobs] = useState<Job[]>([]);
   const [loading, setLoading] = useState(true);
 
   async function loadData() {
     setLoading(true);
     try {
-      const [appsRes, analyticsRes, emailsRes] = await Promise.all([
+      const [appsRes, analyticsRes, emailsRes, jobsRes] = await Promise.all([
         fetch("/api/applications"),
         fetch("/api/analytics"),
         fetch("/api/emails"),
+        fetch("/api/jobs"),
       ]);
       setApplications(await appsRes.json());
       setAnalytics(await analyticsRes.json());
       setEmails(await emailsRes.json());
+      setJobs(await jobsRes.json());
     } catch (e) {
       console.error("Failed to load data:", e);
     }
@@ -68,6 +72,7 @@ export default function Home() {
 
           <div className="flex gap-1 mt-4">
             {[
+              { id: "jobs" as Tab, label: "Jobs", icon: "🔍" },
               { id: "kanban" as Tab, label: "Pipeline", icon: "📋" },
               { id: "analytics" as Tab, label: "Analytics", icon: "📊" },
               { id: "emails" as Tab, label: "Email Feed", icon: "📧" },
@@ -103,6 +108,7 @@ export default function Home() {
           </div>
         ) : (
           <>
+            {tab === "jobs" && <JobDiscovery jobs={jobs} />}
             {tab === "kanban" && (
               <KanbanBoard applications={applications} />
             )}
