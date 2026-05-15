@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JobPilot — AI-Spark Hackathon Demo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --bg: #0a0b0f;
+    --card: #111318;
+    --card2: #161920;
+    --border: rgba(255,255,255,0.07);
+    --green: #22c55e;
+    --green-dim: rgba(34,197,94,0.12);
+    --green-glow: rgba(34,197,94,0.2);
+    --text: #f0f0f0;
+    --muted: rgba(255,255,255,0.4);
+  }
+  body { font-family:'Inter',system-ui,sans-serif; background:var(--bg); color:var(--text); overflow:hidden; height:100vh; width:100vw; }
+  .deck { position:relative; width:100vw; height:100vh; }
+  .slide {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    justify-content:center; align-items:center; padding:50px 70px;
+    opacity:0; transform:translateY(24px);
+    transition: opacity .45s ease, transform .45s ease;
+    pointer-events:none;
+  }
+  .slide.active { opacity:1; transform:translateY(0); pointer-events:auto; }
+  .progress { position:fixed; top:0; left:0; height:3px; background:var(--green); transition:width .4s ease; z-index:100; box-shadow:0 0 16px var(--green-glow); }
+  .counter { position:fixed; bottom:24px; right:36px; font-family:'JetBrains Mono',monospace; font-size:10px; color:var(--muted); letter-spacing:.2em; text-transform:uppercase; z-index:100; }
+  .nav-hint { position:fixed; bottom:24px; left:36px; font-family:'JetBrains Mono',monospace; font-size:9px; color:rgba(255,255,255,0.2); letter-spacing:.2em; text-transform:uppercase; z-index:100; }
+
+  .logo { display:inline-flex; align-items:center; gap:10px; margin-bottom:28px; }
+  .logo-box { width:44px; height:44px; background:var(--green); border-radius:9px; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:16px; color:#000; letter-spacing:-.04em; }
+  h1 { font-size:clamp(40px,5vw,68px); font-weight:900; letter-spacing:-.035em; line-height:1.08; text-align:center; margin-bottom:18px; }
+  h2 { font-size:clamp(30px,3.5vw,48px); font-weight:900; letter-spacing:-.03em; line-height:1.12; margin-bottom:14px; }
+  .g { color:var(--green); }
+  .sub { font-size:clamp(15px,1.6vw,20px); color:var(--muted); text-align:center; max-width:660px; line-height:1.6; }
+  .mono { font-family:'JetBrains Mono',monospace; font-size:10px; text-transform:uppercase; letter-spacing:.2em; color:var(--green); }
+  .tag { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:.2em; padding:5px 14px; border-radius:100px; border:1px solid rgba(34,197,94,0.3); color:var(--green); background:var(--green-dim); width:fit-content; }
+
+  /* Two-col feature */
+  .feat { display:grid; grid-template-columns:1fr 1fr; gap:50px; align-items:center; width:100%; max-width:1100px; }
+  .feat-l { display:flex; flex-direction:column; gap:18px; }
+  .pts { list-style:none; display:flex; flex-direction:column; gap:12px; }
+  .pts li { display:flex; align-items:flex-start; gap:10px; font-size:14px; color:rgba(255,255,255,0.7); line-height:1.55; }
+  .pts li::before { content:''; width:5px; height:5px; border-radius:50%; background:var(--green); margin-top:7px; flex-shrink:0; }
+
+  /* Mockup panel */
+  .mock { background:var(--card); border:1px solid var(--border); border-radius:12px; overflow:hidden; box-shadow:0 16px 50px rgba(0,0,0,.5),0 0 30px var(--green-glow); }
+  .mock-bar { height:32px; background:var(--card2); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 12px; gap:6px; }
+  .mock-dot { width:8px; height:8px; border-radius:50%; }
+  .mock-body { padding:20px; }
+
+  /* Mini cards inside mockup */
+  .m-row { display:flex; gap:8px; margin-bottom:8px; }
+  .m-card { flex:1; background:var(--card2); border:1px solid var(--border); border-radius:8px; padding:12px; }
+  .m-title { font-size:11px; font-weight:700; margin-bottom:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .m-sub { font-size:9px; color:var(--muted); }
+  .m-badge { display:inline-block; font-family:'JetBrains Mono',monospace; font-size:7px; text-transform:uppercase; letter-spacing:.1em; padding:2px 7px; border-radius:20px; margin-top:6px; }
+  .m-badge.indeed { background:rgba(59,130,246,.15); color:#60a5fa; border:1px solid rgba(59,130,246,.2); }
+  .m-badge.linkedin { background:rgba(14,165,233,.15); color:#38bdf8; border:1px solid rgba(14,165,233,.2); }
+  .m-badge.green { background:var(--green-dim); color:var(--green); border:1px solid rgba(34,197,94,.25); }
+  .m-bar { height:6px; border-radius:3px; margin-top:6px; }
+  .m-bar-bg { background:rgba(255,255,255,.05); border-radius:3px; overflow:hidden; }
+  .m-bar-fill { height:6px; border-radius:3px; background:var(--green); }
+  .m-search { display:flex; gap:6px; margin-bottom:12px; }
+  .m-input { flex:1; height:28px; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:0 10px; font-size:10px; color:var(--text); display:flex; align-items:center; }
+  .m-btn { height:28px; padding:0 14px; background:var(--green); border-radius:6px; font-size:9px; font-family:'JetBrains Mono',monospace; text-transform:uppercase; letter-spacing:.1em; color:#000; font-weight:700; display:flex; align-items:center; }
+  .m-kpi { display:flex; gap:8px; margin-bottom:12px; }
+  .m-kpi-card { flex:1; background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:8px 10px; text-align:center; }
+  .m-kpi-val { font-size:16px; font-weight:900; color:var(--text); }
+  .m-kpi-label { font-family:'JetBrains Mono',monospace; font-size:7px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-top:2px; }
+
+  /* Kanban cols */
+  .m-kanban { display:flex; gap:6px; }
+  .m-col { flex:1; }
+  .m-col-head { font-family:'JetBrains Mono',monospace; font-size:7px; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin-bottom:6px; text-align:center; }
+  .m-col-card { background:var(--card2); border:1px solid var(--border); border-radius:6px; padding:8px; margin-bottom:4px; }
+  .m-col-card.offer { border-color:rgba(34,197,94,.3); box-shadow:0 0 10px var(--green-glow); }
+
+  /* Email rows */
+  .m-email { display:flex; align-items:center; gap:8px; padding:8px; border-bottom:1px solid var(--border); }
+  .m-email:last-child { border-bottom:none; }
+  .m-email-time { font-family:'JetBrains Mono',monospace; font-size:7px; color:var(--muted); width:28px; flex-shrink:0; }
+  .m-email-text { font-size:10px; flex:1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .m-email-conf { font-family:'JetBrains Mono',monospace; font-size:8px; color:var(--muted); }
+
+  /* Tools grid */
+  .tools { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; width:100%; max-width:860px; margin-top:36px; }
+  .tool { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:24px 20px; transition:border-color .3s; }
+  .tool:hover { border-color:rgba(34,197,94,.3); }
+  .tool-ico { font-size:24px; margin-bottom:8px; }
+  .tool-name { font-weight:700; font-size:15px; margin-bottom:4px; }
+  .tool-desc { font-size:12px; color:var(--muted); line-height:1.5; }
+
+  /* Arch flow */
+  .arch { display:flex; align-items:center; gap:12px; margin-top:36px; flex-wrap:wrap; justify-content:center; }
+  .arch-node { background:var(--card); border:1px solid var(--border); border-radius:8px; padding:16px 24px; text-align:center; min-width:120px; }
+  .arch-node.hl { border-color:rgba(34,197,94,.4); box-shadow:0 0 16px var(--green-glow); }
+  .arch-node .nl { font-family:'JetBrains Mono',monospace; font-size:8px; text-transform:uppercase; letter-spacing:.12em; color:var(--muted); margin-bottom:4px; }
+  .arch-node .nn { font-weight:700; font-size:13px; }
+  .arch-arr { font-size:18px; color:var(--green); font-weight:700; }
+
+  .big-stats { display:flex; gap:48px; margin-top:28px; }
+  .bs { text-align:center; }
+  .bs .num { font-size:44px; font-weight:900; color:var(--green); letter-spacing:-.03em; }
+  .bs .lbl { font-family:'JetBrains Mono',monospace; font-size:9px; text-transform:uppercase; letter-spacing:.2em; color:var(--muted); margin-top:3px; }
+
+  .cta-links { display:flex; gap:14px; margin-top:28px; }
+  .cta { display:inline-flex; align-items:center; gap:8px; padding:12px 28px; border-radius:8px; font-family:'JetBrains Mono',monospace; font-size:11px; text-transform:uppercase; letter-spacing:.12em; text-decoration:none; transition:all .3s; }
+  .cta.pri { background:var(--green); color:#000; font-weight:700; }
+  .cta.pri:hover { box-shadow:0 0 24px var(--green-glow); }
+  .cta.sec { border:1px solid var(--border); color:var(--text); }
+  .cta.sec:hover { border-color:rgba(255,255,255,.2); }
+</style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+  <!-- 1: TITLE -->
+  <div class="slide active" data-slide="0">
+    <div class="logo"><div class="logo-box">JP</div></div>
+    <h1><span class="g">JobPilot</span><br>AI Application Engine</h1>
+    <p class="sub">One dashboard to discover, track, and analyze your entire job search — powered by real-time scraping, intelligent email monitoring, and Databricks analytics.</p>
+    <div style="margin-top:28px"><span class="tag">AI-Spark Hackathon 2026</span></div>
+  </div>
+
+  <!-- 2: PROBLEM -->
+  <div class="slide" data-slide="1">
+    <span class="mono" style="margin-bottom:14px">The Problem</span>
+    <h1 style="font-size:clamp(34px,4vw,54px)">Job searching is <span class="g">broken</span>.</h1>
+    <p class="sub" style="margin-top:10px">50+ tabs open. Spreadsheets to track applications. Interview emails buried in spam. No idea which platform actually converts.</p>
+    <div class="big-stats">
+      <div class="bs"><div class="num">73%</div><div class="lbl">Lose track of apps</div></div>
+      <div class="bs"><div class="num">4.2h</div><div class="lbl">Wasted per week</div></div>
+      <div class="bs"><div class="num">12+</div><div class="lbl">Tabs open at once</div></div>
+    </div>
+  </div>
+
+  <!-- 3: JOBS TAB -->
+  <div class="slide" data-slide="2">
+    <div class="feat">
+      <div class="feat-l">
+        <span class="tag">Jobs Tab</span>
+        <h2>Search <span class="g">real jobs</span> across sources</h2>
+        <ul class="pts">
+          <li>Real-time scraping from Indeed, LinkedIn &amp; SimplyHired in one query</li>
+          <li>Filter by experience level, work mode, and platform</li>
+          <li>One-click <strong style="color:var(--green)">+ Track</strong> adds any job to your pipeline instantly</li>
+          <li>700+ jobs discovered and growing with every search</li>
+        </ul>
+      </div>
+      <div class="mock">
+        <div class="mock-bar">
+          <div class="mock-dot" style="background:#ff5f57"></div>
+          <div class="mock-dot" style="background:#febc2e"></div>
+          <div class="mock-dot" style="background:#28c840"></div>
+        </div>
+        <div class="mock-body">
+          <div class="m-kpi">
+            <div class="m-kpi-card"><div class="m-kpi-val">25</div><div class="m-kpi-label">Active Apps</div></div>
+            <div class="m-kpi-card"><div class="m-kpi-val">25.0%</div><div class="m-kpi-label">Interview Rate</div></div>
+            <div class="m-kpi-card"><div class="m-kpi-val">711</div><div class="m-kpi-label">Jobs Found</div></div>
+          </div>
+          <div class="m-search">
+            <div class="m-input">software engineer</div>
+            <div class="m-input" style="flex:.5">Seattle, WA</div>
+            <div class="m-btn">Search</div>
+          </div>
+          <div class="m-row">
+            <div class="m-card">
+              <div class="m-title">Software Engineer</div>
+              <div class="m-sub">Microsoft · Redmond, WA</div>
+              <div style="display:flex;gap:4px;align-items:center;margin-top:6px">
+                <span class="m-badge linkedin">LinkedIn</span>
+                <span style="margin-left:auto;font-size:8px;color:var(--green);font-family:'JetBrains Mono',monospace">+ TRACK</span>
+              </div>
+            </div>
+            <div class="m-card">
+              <div class="m-title">AI Software Engineer</div>
+              <div class="m-sub">Amazon · Seattle, WA</div>
+              <div style="display:flex;gap:4px;align-items:center;margin-top:6px">
+                <span class="m-badge indeed">Indeed</span>
+                <span style="margin-left:auto;font-size:8px;color:var(--green);font-family:'JetBrains Mono',monospace">+ TRACK</span>
+              </div>
+            </div>
+          </div>
+          <div class="m-row">
+            <div class="m-card" style="border-color:rgba(34,197,94,.3)">
+              <div class="m-title">Full Stack Engineer</div>
+              <div class="m-sub">Slack · Bellevue, WA</div>
+              <div style="display:flex;gap:4px;align-items:center;margin-top:6px">
+                <span class="m-badge linkedin">LinkedIn</span>
+                <span class="m-badge green" style="margin-left:auto">&#10003; Tracked</span>
+              </div>
+            </div>
+            <div class="m-card">
+              <div class="m-title">Embedded Software Eng.</div>
+              <div class="m-sub">American IT · Redmond, WA</div>
+              <div style="display:flex;gap:4px;align-items:center;margin-top:6px">
+                <span class="m-badge indeed">Indeed</span>
+                <span style="margin-left:auto;font-size:8px;color:var(--green);font-family:'JetBrains Mono',monospace">+ TRACK</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4: PIPELINE TAB -->
+  <div class="slide" data-slide="3">
+    <div class="feat">
+      <div class="feat-l">
+        <span class="tag">Pipeline Tab</span>
+        <h2>Track every app in a <span class="g">Kanban board</span></h2>
+        <ul class="pts">
+          <li>5-stage pipeline: Applied &rarr; Screening &rarr; Interviewing &rarr; Offer &rarr; Archived</li>
+          <li>Cards auto-populate when you track jobs or the email agent detects updates</li>
+          <li>Visual indicators — green glow on offers, dimmed archived cards</li>
+          <li>All state synced to Databricks in real-time</li>
+        </ul>
+      </div>
+      <div class="mock">
+        <div class="mock-bar">
+          <div class="mock-dot" style="background:#ff5f57"></div>
+          <div class="mock-dot" style="background:#febc2e"></div>
+          <div class="mock-dot" style="background:#28c840"></div>
+        </div>
+        <div class="mock-body">
+          <div class="m-kanban">
+            <div class="m-col">
+              <div class="m-col-head">Applied <span style="color:var(--text)">11</span></div>
+              <div class="m-col-card"><div class="m-title" style="font-size:9px">AI Software Eng.</div><div class="m-sub">Outlier AI</div></div>
+              <div class="m-col-card"><div class="m-title" style="font-size:9px">Data Engineer</div><div class="m-sub">VTekis</div></div>
+              <div class="m-col-card"><div class="m-title" style="font-size:9px">Frontend Eng.</div><div class="m-sub">Amazon</div></div>
+            </div>
+            <div class="m-col">
+              <div class="m-col-head">Screening <span style="color:var(--text)">5</span></div>
+              <div class="m-col-card"><div class="m-title" style="font-size:9px">Product Engineer</div><div class="m-sub">Vercel</div></div>
+              <div class="m-col-card"><div class="m-title" style="font-size:9px">Software Eng.</div><div class="m-sub">Anthropic</div></div>
+            </div>
+            <div class="m-col">
+              <div class="m-col-head">Interviewing <span style="color:var(--green)">6</span></div>
+              <div class="m-col-card" style="border-color:rgba(34,197,94,.2)"><div class="m-title" style="font-size:9px">Full Stack Dev</div><div class="m-sub">Airbnb</div></div>
+              <div class="m-col-card" style="border-color:rgba(34,197,94,.2)"><div class="m-title" style="font-size:9px">Sr. Data Scientist</div><div class="m-sub">Spotify</div></div>
+            </div>
+            <div class="m-col">
+              <div class="m-col-head">Offer <span style="color:var(--green)">2</span></div>
+              <div class="m-col-card offer"><div class="m-title" style="font-size:9px">ML Engineer</div><div class="m-sub">OpenAI</div><div style="font-size:8px;color:var(--green);margin-top:3px">$200k – $300k</div></div>
+            </div>
+            <div class="m-col">
+              <div class="m-col-head" style="opacity:.5">Archived <span>4</span></div>
+              <div class="m-col-card" style="opacity:.4"><div class="m-title" style="font-size:9px">Sr. Software Eng.</div><div class="m-sub">Google</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5: ANALYTICS TAB -->
+  <div class="slide" data-slide="4">
+    <div class="feat">
+      <div class="feat-l">
+        <span class="tag">Analytics Tab</span>
+        <h2>Auto-generated <span class="g">insights</span> on your search</h2>
+        <ul class="pts">
+          <li>Application funnel — see conversion at every stage from Applied to Offer</li>
+          <li>Pipeline breakdown computed algorithmically from Databricks data</li>
+          <li>Platform distribution — know which source converts best</li>
+          <li>All analytics update in real-time as your pipeline changes</li>
+        </ul>
+      </div>
+      <div class="mock">
+        <div class="mock-bar">
+          <div class="mock-dot" style="background:#ff5f57"></div>
+          <div class="mock-dot" style="background:#febc2e"></div>
+          <div class="mock-dot" style="background:#28c840"></div>
+        </div>
+        <div class="mock-body">
+          <div style="font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:10px">Application Funnel</div>
+          <div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px"><span>APPLICATIONS SENT</span><span style="color:var(--text)">30</span></div><div class="m-bar-bg"><div class="m-bar-fill" style="width:100%"></div></div></div>
+          <div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px"><span>RESPONSES RECEIVED</span><span style="color:var(--text)">19</span></div><div class="m-bar-bg"><div class="m-bar-fill" style="width:63%"></div></div></div>
+          <div style="margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px"><span>INTERVIEWS SECURED</span><span style="color:var(--text)">8</span></div><div class="m-bar-bg"><div class="m-bar-fill" style="width:27%"></div></div></div>
+          <div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-bottom:3px"><span>OFFERS RECEIVED</span><span style="color:var(--text)">2</span></div><div class="m-bar-bg"><div class="m-bar-fill" style="width:7%"></div></div></div>
+          <div style="font-family:'JetBrains Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:8px">By Platform</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:10px"><span style="width:60px">Indeed</span><div class="m-bar-bg" style="flex:1"><div class="m-bar-fill" style="width:33%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)">33%</span></div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;font-size:10px"><span style="width:60px">Glassdoor</span><div class="m-bar-bg" style="flex:1"><div class="m-bar-fill" style="width:17%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)">17%</span></div>
+          <div style="display:flex;align-items:center;gap:8px;font-size:10px"><span style="width:60px">LinkedIn</span><div class="m-bar-bg" style="flex:1"><div class="m-bar-fill" style="width:43%"></div></div><span style="font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--muted)">43%</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6: EMAIL FEED TAB -->
+  <div class="slide" data-slide="5">
+    <div class="feat">
+      <div class="feat-l">
+        <span class="tag">Email Agent</span>
+        <h2>An AI agent <span class="g">monitors</span> your inbox for you</h2>
+        <ul class="pts">
+          <li>Continuously scans emails for job-related updates — you never miss an interview invite</li>
+          <li>Claude AI classifies each email: Interview, Offer, Screening, Rejection</li>
+          <li>Confidence scores on every classification (90%+ accuracy)</li>
+          <li>Automatically moves applications through the pipeline when status changes</li>
+        </ul>
+      </div>
+      <div class="mock">
+        <div class="mock-bar">
+          <div class="mock-dot" style="background:#ff5f57"></div>
+          <div class="mock-dot" style="background:#febc2e"></div>
+          <div class="mock-dot" style="background:#28c840"></div>
+        </div>
+        <div class="mock-body">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+            <span style="font-family:'JetBrains Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:700">Intelligent Email Feed</span>
+            <span style="font-size:8px;color:var(--green);animation:pulse 2s infinite">SCANNING...</span>
+            <span style="margin-left:auto;font-size:8px;color:var(--muted);font-family:'JetBrains Mono',monospace">33 parsed by Claude</span>
+          </div>
+          <div class="m-email">
+            <div class="m-email-time">8m</div>
+            <span class="m-badge green" style="font-size:7px">Applied</span>
+            <div class="m-email-text" style="margin-left:4px"><span style="color:var(--muted)">recruiting@outlier.ai ·</span> Application Received - Outlier AI</div>
+            <div class="m-email-conf">95%</div>
+          </div>
+          <div class="m-email">
+            <div class="m-email-time">29m</div>
+            <span class="m-badge" style="font-size:7px;background:rgba(34,197,94,.15);color:var(--green);border:1px solid rgba(34,197,94,.25)">Offer</span>
+            <div class="m-email-text" style="margin-left:4px"><span style="color:var(--muted)">people@openai.com ·</span> <strong>Offer Letter - ML Engineer</strong></div>
+            <div class="m-email-conf">94%</div>
+          </div>
+          <div class="m-email">
+            <div class="m-email-time">1h</div>
+            <span class="m-badge" style="font-size:7px;background:rgba(251,191,36,.12);color:#fbbf24;border:1px solid rgba(251,191,36,.2)">Screen</span>
+            <div class="m-email-text" style="margin-left:4px"><span style="color:var(--muted)">talent@airbnb.com ·</span> Phone Screen Invitation</div>
+            <div class="m-email-conf">91%</div>
+          </div>
+          <div class="m-email">
+            <div class="m-email-time">3h</div>
+            <span class="m-badge" style="font-size:7px;background:rgba(59,130,246,.12);color:#60a5fa;border:1px solid rgba(59,130,246,.2)">Interview</span>
+            <div class="m-email-text" style="margin-left:4px"><span style="color:var(--muted)">hr@spotify.com ·</span> On-site Interview Scheduled</div>
+            <div class="m-email-conf">97%</div>
+          </div>
+          <div class="m-email">
+            <div class="m-email-time">1d</div>
+            <span class="m-badge" style="font-size:7px;background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.2)">Rejected</span>
+            <div class="m-email-text" style="margin-left:4px"><span style="color:var(--muted)">no-reply@google.com ·</span> Update on your application</div>
+            <div class="m-email-conf">88%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <style>@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }</style>
+  </div>
+
+  <!-- 7: ARCHITECTURE -->
+  <div class="slide" data-slide="6">
+    <span class="mono" style="margin-bottom:14px">Architecture</span>
+    <h2 style="text-align:center">How it all <span class="g">connects</span></h2>
+    <div class="arch">
+      <div class="arch-node"><div class="nl">Scraping</div><div class="nn">ScraperAPI</div></div>
+      <div class="arch-arr">&rarr;</div>
+      <div class="arch-node hl"><div class="nl">Backend</div><div class="nn">Databricks SQL</div></div>
+      <div class="arch-arr">&rarr;</div>
+      <div class="arch-node"><div class="nl">API Layer</div><div class="nn">Next.js</div></div>
+      <div class="arch-arr">&rarr;</div>
+      <div class="arch-node"><div class="nl">Frontend</div><div class="nn">Lovable UI</div></div>
+    </div>
+    <div class="arch" style="margin-top:20px">
+      <div class="arch-node"><div class="nl">Email Agent</div><div class="nn">Claude AI</div></div>
+      <div class="arch-arr">&rarr;</div>
+      <div class="arch-node"><div class="nl">Classify</div><div class="nn">NLP Pipeline</div></div>
+      <div class="arch-arr">&rarr;</div>
+      <div class="arch-node hl"><div class="nl">Storage</div><div class="nn">Databricks SQL</div></div>
+      <div class="arch-arr">&rarr;</div>
+      <div class="arch-node"><div class="nl">Auto-Gen</div><div class="nn">Analytics</div></div>
+    </div>
+  </div>
+
+  <!-- 8: TOOLS -->
+  <div class="slide" data-slide="7">
+    <span class="mono" style="margin-bottom:14px">Built With</span>
+    <h2 style="text-align:center">Our <span class="g">Stack</span></h2>
+    <div class="tools">
+      <div class="tool"><div class="tool-ico">&#9881;</div><div class="tool-name">Databricks</div><div class="tool-desc">SQL warehouse — jobs, applications, emails, analytics</div></div>
+      <div class="tool"><div class="tool-ico">&#10024;</div><div class="tool-name">Claude AI</div><div class="tool-desc">Email agent — classifies, scores, updates pipeline</div></div>
+      <div class="tool"><div class="tool-ico">&#9889;</div><div class="tool-name">ScraperAPI</div><div class="tool-desc">Real-time scraping from Indeed, LinkedIn, SimplyHired</div></div>
+      <div class="tool"><div class="tool-ico">&#9670;</div><div class="tool-name">Next.js</div><div class="tool-desc">Full-stack React framework with API routes</div></div>
+      <div class="tool"><div class="tool-ico">&#9829;</div><div class="tool-name">Lovable</div><div class="tool-desc">AI-generated dark command-deck UI design</div></div>
+      <div class="tool"><div class="tool-ico">&#9650;</div><div class="tool-name">Vercel</div><div class="tool-desc">Zero-config deploy with GitHub integration</div></div>
+    </div>
+  </div>
+
+  <!-- 9: LIVE DEMO -->
+  <div class="slide" data-slide="8">
+    <div class="logo"><div class="logo-box">JP</div></div>
+    <h1 style="font-size:clamp(34px,4vw,54px)"><span class="g">Live Demo</span></h1>
+    <p class="sub">Let's search for jobs, track them, and watch the pipeline update in real-time.</p>
+    <div class="cta-links">
+      <a class="cta pri" href="https://jobpilot-alpha-dusky.vercel.app" target="_blank">Open JobPilot &rarr;</a>
+      <a class="cta sec" href="https://github.com/prassu017/jobpilot" target="_blank">GitHub Repo</a>
+    </div>
+    <div style="margin-top:40px"><span class="mono">AI-Spark Hackathon 2026</span></div>
+  </div>
+
+</div>
+
+<div class="progress" id="progress"></div>
+<div class="counter" id="counter">1 / 9</div>
+<div class="nav-hint">&#8592; &#8594; to navigate</div>
+
+<script>
+  let current=0;
+  const slides=document.querySelectorAll('.slide'), total=slides.length;
+  const counter=document.getElementById('counter'), progress=document.getElementById('progress');
+  function go(n){if(n<0||n>=total)return;slides[current].classList.remove('active');current=n;slides[current].classList.add('active');counter.textContent=`${current+1} / ${total}`;progress.style.width=`${((current+1)/total)*100}%`;}
+  document.addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();go(current+1);}if(e.key==='ArrowLeft'){e.preventDefault();go(current-1);}if(e.key==='Home')go(0);if(e.key==='End')go(total-1);});
+  document.addEventListener('click',e=>{if(e.target.closest('a'))return;e.clientX>window.innerWidth/2?go(current+1):go(current-1);});
+  let tx=0;document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});document.addEventListener('touchend',e=>{const d=e.changedTouches[0].clientX-tx;if(Math.abs(d)>50)d<0?go(current+1):go(current-1);});
+  progress.style.width=`${(1/total)*100}%`;
+</script>
+</body>
+</html>
