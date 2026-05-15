@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { Job } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -27,7 +27,9 @@ export default function JobDiscovery({
   const [scrapeSources, setScrapeSources] = useState<string[]>(["indeed", "linkedin"]);
   const [scraping, setScraping] = useState(false);
   const [scrapeResult, setScrapeResult] = useState<string | null>(null);
-  const [freshJobs, setFreshJobs] = useState<Job[] | null>(null);
+  const [cachedJobs, setCachedJobs] = useState<Job[] | null>(null);
+  const [liveJobs, setLiveJobs] = useState<Job[] | null>(null);
+  const [loadingCached, setLoadingCached] = useState(false);
   const [experience, setExperience] = useState("All Levels");
   const [workMode, setWorkMode] = useState("All");
   const [platformFilter, setPlatformFilter] = useState("all");
@@ -40,29 +42,38 @@ export default function JobDiscovery({
     );
   }
 
-  async function handleScrape() {
-    setScraping(true);
+  const handleSearch = useCallback(async () => {
+    setCachedJobs(null);
+    setLiveJobs(null);
     setScrapeResult(null);
+    setLoadingCached(true);
+
+    // Phase 1: instant results from DB cache
     try {
-      const res = await fetch("/api/scrape-jobs", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          query,
-          location,
-          sources: scrapeSources,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        const parts = Object.entries(data.sourceResults as Record<string, number>)
-          .map(([s, n]) => `${s}: ${n}`)
-          .join(", ");
-        setScrapeResult(`Found ${data.total_scraped} new jobs (${parts})`);
-        onRefresh();
-        if (data.jobs && data.jobs.length > 0) {
-          setFreshJobs(data.jobs.map((j: any, i: number) => ({
-            job_id: `fresh-${Date.now()}-${i}`,
+      const cacheRes = await fetch(
+        `/api/search-jobs?q=${encodeURIComponent(query)}&l=${encodeURIComponent(location)}`
+      );
+      const cacheData = await cacheRes.json();
+      if (cacheData.jobs?.length > 0) {
+        setCachedJobs(cacheData.jobs);
+        setScrapeResult(`${cacheData.jobs.length} cached results`);
+      }
+    } catch {}
+    setLoadingCached(false);
+
+    // Phase 2: live scrape in parallel
+    if (scrapeSources.length > 0) {
+      setScraping(true);
+      try {
+        const res = await fetch("/api/scrape-jobs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, location, sources: scrapeSources }),
+        });
+        const data = await res.json();
+        if (data.success && data.jobs?.length > 0) {
+          const live: Job[] = data.jobs.map((j: any, i: number) => ({
+            job_id: `live-${Date.now()}-${i}`,
             title: j.title,
             company: j.company,
             location: j.location,
@@ -73,17 +84,22 @@ export default function JobDiscovery({
             job_type: "Full-time",
             posted_date: new Date().toISOString().split("T")[0],
             description: "",
-          })));
+          }));
+          setLiveJobs(live);
+          const parts = Object.entries(data.sourceResults as Record<string, number>)
+            .map(([s, n]) => `${s}: ${n}`)
+            .join(", ");
+          setScrapeResult(`${data.total_scraped} live results (${parts})`);
+          onRefresh();
+        } else if (data.error) {
+          setScrapeResult((prev) => prev ? `${prev} | Scrape: ${data.error}` : `Error: ${data.error}`);
         }
-      } else {
-        setScrapeResult(`Error: ${data.error}`);
-        setFreshJobs(null);
+      } catch {
+        setScrapeResult((prev) => prev ? `${prev} | Scrape failed` : "Scrape failed");
       }
-    } catch {
-      setScrapeResult("Failed to scrape");
+      setScraping(false);
     }
-    setScraping(false);
-  }
+  }, [query, location, scrapeSources, onRefresh]);
 
   async function handleTrack(job: Job) {
     setTrackingJob(job.job_id);
@@ -121,14 +137,32 @@ export default function JobDiscovery({
     return true;
   }
 
+  // Merge cached + live results, dedup by title|company|platform
+  const merged = useMemo(() => {
+    const hasSearchResults = cachedJobs !== null || liveJobs !== null;
+    if (!hasSearchResults) return null;
+
+    const all: Job[] = [];
+    if (liveJobs) all.push(...liveJobs);
+    if (cachedJobs) all.push(...cachedJobs);
+
+    const seen = new Set<string>();
+    return all.filter((j) => {
+      const key = `${j.title.toLowerCase()}|${j.company.toLowerCase()}|${j.platform}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [cachedJobs, liveJobs]);
+
   const filtered = useMemo(() => {
-    const source = freshJobs || jobs;
+    const source = merged || jobs;
     const seen = new Set<string>();
     return source.filter((j) => {
       const key = `${j.title.toLowerCase()}|${j.company.toLowerCase()}|${j.platform}`;
       if (seen.has(key)) return false;
       seen.add(key);
-      if (!freshJobs) {
+      if (!merged) {
         if (query && !j.title.toLowerCase().includes(query.toLowerCase()) && !j.company.toLowerCase().includes(query.toLowerCase())) return false;
         if (location && !j.location.toLowerCase().includes(location.toLowerCase())) return false;
       }
@@ -137,7 +171,7 @@ export default function JobDiscovery({
       if (platformFilter !== "all" && j.platform !== platformFilter) return false;
       return true;
     });
-  }, [jobs, freshJobs, query, location, experience, workMode, platformFilter]);
+  }, [jobs, merged, query, location, experience, workMode, platformFilter]);
 
   const platforms = [...new Set(jobs.map((j) => j.platform))];
 
@@ -157,7 +191,6 @@ export default function JobDiscovery({
 
   return (
     <section className="space-y-6 animate-in">
-      {/* Unified search panel */}
       <div className="bg-card border border-border rounded-lg p-5 space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-sm font-bold tracking-tight uppercase">
@@ -199,7 +232,7 @@ export default function JobDiscovery({
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleScrape()}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="Job title, company, or keywords..."
               className="w-full pl-20 pr-4 h-11 bg-background border border-border rounded-lg text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
             />
@@ -212,17 +245,17 @@ export default function JobDiscovery({
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleScrape()}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
               placeholder="City, state..."
               className="w-full pl-14 pr-4 h-11 bg-background border border-border rounded-lg text-sm font-medium placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/20"
             />
           </div>
           <button
-            onClick={handleScrape}
-            disabled={scraping || scrapeSources.length === 0}
+            onClick={handleSearch}
+            disabled={scraping || loadingCached}
             className="h-11 px-6 rounded-lg bg-primary text-primary-foreground text-xs font-mono uppercase tracking-widest hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
           >
-            {scraping ? "Searching..." : "Search"}
+            {loadingCached ? "Loading..." : scraping ? "Scraping live..." : "Search"}
           </button>
         </div>
 
@@ -251,49 +284,58 @@ export default function JobDiscovery({
           </select>
           {scrapeResult && (
             <span className="text-[11px] font-mono text-primary uppercase tracking-wider ml-auto">
+              {scraping && <span className="inline-block w-2 h-2 bg-primary rounded-full animate-pulse mr-2" />}
               {scrapeResult}
             </span>
           )}
-          {freshJobs && (
+          {merged && (
             <button
-              onClick={() => setFreshJobs(null)}
+              onClick={() => { setCachedJobs(null); setLiveJobs(null); setScrapeResult(null); }}
               className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
             >
-              Show all jobs →
+              Show all jobs
             </button>
           )}
         </div>
       </div>
 
-      {/* Job grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((job) => {
           const isTracked = trackedJobs.has(job.job_id);
           const isTracking = trackingJob === job.job_id;
           const salary = formatSalary(job);
+          const isLive = job.job_id.startsWith("live-");
           return (
             <article
               key={job.job_id}
               className={cn(
                 "p-5 bg-card border rounded-lg hover:border-primary/40 transition-all space-y-4",
-                isTracked ? "border-primary/30 ring-1 ring-primary/10" : "border-border"
+                isTracked ? "border-primary/30 ring-1 ring-primary/10" : "border-border",
+                isLive && "animate-in"
               )}
             >
               <div className="flex items-start justify-between">
                 <div>
                   <h4 className="font-bold text-sm tracking-tight">{job.title}</h4>
                   <p className="text-xs text-muted-foreground">
-                    {job.company} · {job.location}
+                    {job.company} - {job.location}
                   </p>
                 </div>
-                <span
-                  className={cn(
-                    "px-2 py-0.5 rounded-full border text-[10px] font-mono uppercase tracking-wider shrink-0 ml-2",
-                    PLATFORM_BADGE[job.platform] || "bg-white/5 text-muted-foreground border-white/5"
+                <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  {isLive && (
+                    <span className="px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-wider bg-primary/15 text-primary border border-primary/20">
+                      Live
+                    </span>
                   )}
-                >
-                  {job.platform}
-                </span>
+                  <span
+                    className={cn(
+                      "px-2 py-0.5 rounded-full border text-[10px] font-mono uppercase tracking-wider",
+                      PLATFORM_BADGE[job.platform] || "bg-white/5 text-muted-foreground border-white/5"
+                    )}
+                  >
+                    {job.platform}
+                  </span>
+                </div>
               </div>
 
               {job.job_type && job.job_type !== "Full-time" && (
@@ -319,7 +361,7 @@ export default function JobDiscovery({
                       rel="noopener noreferrer"
                       className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors"
                     >
-                      View →
+                      View
                     </a>
                   )}
                   {isTracked ? (
@@ -341,10 +383,17 @@ export default function JobDiscovery({
             </article>
           );
         })}
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !loadingCached && !scraping && (
           <div className="col-span-full h-32 border-2 border-dashed border-border rounded-lg flex items-center justify-center">
             <span className="text-xs font-mono text-muted-foreground uppercase tracking-widest">
               No matches - try a different search or adjust filters
+            </span>
+          </div>
+        )}
+        {(loadingCached || scraping) && filtered.length === 0 && (
+          <div className="col-span-full h-32 border-2 border-dashed border-border rounded-lg flex items-center justify-center">
+            <span className="text-xs font-mono text-primary uppercase tracking-widest animate-pulse">
+              {loadingCached ? "Loading cached results..." : "Scraping live results..."}
             </span>
           </div>
         )}
