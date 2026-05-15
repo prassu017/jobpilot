@@ -11,7 +11,7 @@ import { ApplicationWithJob, Analytics, Job } from "@/lib/types";
 type Tab = "kanban" | "analytics" | "emails" | "jobs";
 
 export default function Home() {
-  const [tab, setTab] = useState<Tab>("kanban");
+  const [tab, setTab] = useState<Tab>("jobs");
   const [applications, setApplications] = useState<ApplicationWithJob[]>([]);
   const [analytics, setAnalytics] = useState<Analytics | null>(null);
   const [emails, setEmails] = useState<any[]>([]);

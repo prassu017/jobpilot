@@ -14,16 +14,18 @@ interface ScrapedJob {
   url: string;
   posted_date: string;
   description: string;
+  platform: string;
 }
 
-function parseSalary(text: string): [number, number] {
-  if (!text) return [0, 0];
-  const numbers = text.match(/[\d,]+/g);
-  if (!numbers) return [0, 0];
-  const vals = numbers.map((n) => parseInt(n.replace(/,/g, "")));
-  if (vals.length >= 2) return [vals[0], vals[1]];
-  if (vals.length === 1) return [vals[0], vals[0]];
-  return [0, 0];
+function esc(s: string): string {
+  return (s || "").replace(/'/g, "''");
+}
+
+async function fetchViaScraperApi(targetUrl: string): Promise<string> {
+  const res = await fetch(
+    `https://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(targetUrl)}`
+  );
+  return res.text();
 }
 
 function parseIndeedHtml(html: string): ScrapedJob[] {
@@ -31,97 +33,197 @@ function parseIndeedHtml(html: string): ScrapedJob[] {
   const seen = new Set<string>();
   const today = new Date().toISOString().split("T")[0];
 
-  // Extract job keys (data-jk attributes)
   const jobKeys: string[] = [];
-  const jkPattern = /data-jk="([^"]+)"/g;
-  let jkMatch;
-  while ((jkMatch = jkPattern.exec(html)) !== null) {
-    jobKeys.push(jkMatch[1]);
-  }
-
-  // Extract titles from aria-label="full details of ..." on jcs-JobTitle links
-  const titles: string[] = [];
-  const titlePattern = /aria-label="full details of ([^"]+)"[^>]*class="[^"]*jcs-JobTitle/g;
   let m;
-  while ((m = titlePattern.exec(html)) !== null) {
-    titles.push(m[1].replace(/&amp;/g, "&").replace(/&lt;/g, "<").replace(/&gt;/g, ">"));
-  }
+  const jkPattern = /data-jk="([^"]+)"/g;
+  while ((m = jkPattern.exec(html)) !== null) jobKeys.push(m[1]);
 
-  // Extract company names (data-testid="company-name")
+  const titles: string[] = [];
+  const titlePattern =
+    /aria-label="full details of ([^"]+)"[^>]*class="[^"]*jcs-JobTitle/g;
+  while ((m = titlePattern.exec(html)) !== null)
+    titles.push(m[1].replace(/&amp;/g, "&"));
+
   const companies: string[] = [];
   const compPattern = /data-testid="company-name"[^>]*>([^<]+)/g;
-  while ((m = compPattern.exec(html)) !== null) {
-    companies.push(m[1].trim());
-  }
+  while ((m = compPattern.exec(html)) !== null) companies.push(m[1].trim());
 
-  // Extract locations (data-testid="text-location")
   const locations: string[] = [];
   const locPattern = /data-testid="text-location"[^>]*>([^<]+)/g;
-  while ((m = locPattern.exec(html)) !== null) {
-    locations.push(m[1].trim());
-  }
+  while ((m = locPattern.exec(html)) !== null) locations.push(m[1].trim());
 
   const count = Math.min(titles.length, jobKeys.length || titles.length);
   for (let i = 0; i < count; i++) {
-    const title = titles[i];
-    const company = companies[i] || "";
-    const key = `${title}-${company}`;
+    const key = `${titles[i]}-${companies[i] || ""}`;
     if (seen.has(key)) continue;
     seen.add(key);
-
-    const jk = jobKeys[i] || "";
     jobs.push({
-      title,
-      company,
+      title: titles[i],
+      company: companies[i] || "",
       location: locations[i] || "",
       salary_min: 0,
       salary_max: 0,
       job_type: "Full-time",
-      url: jk ? `https://www.indeed.com/viewjob?jk=${jk}` : "",
+      url: jobKeys[i]
+        ? `https://www.indeed.com/viewjob?jk=${jobKeys[i]}`
+        : "",
       posted_date: today,
       description: "",
+      platform: "indeed",
     });
   }
-
   return jobs;
 }
 
-function esc(s: string): string {
-  return (s || "").replace(/'/g, "''");
+function parseLinkedInHtml(html: string): ScrapedJob[] {
+  const jobs: ScrapedJob[] = [];
+  const seen = new Set<string>();
+  const today = new Date().toISOString().split("T")[0];
+
+  let m;
+  const titles: string[] = [];
+  const titlePat = /class="base-search-card__title"[^>]*>([^<]+)/g;
+  while ((m = titlePat.exec(html)) !== null) titles.push(m[1].trim());
+
+  const companies: string[] = [];
+  const compPat = /class="base-search-card__subtitle"[^>]*>(?:<[^>]*>)*([^<]+)/g;
+  while ((m = compPat.exec(html)) !== null) companies.push(m[1].trim());
+
+  const locations: string[] = [];
+  const locPat = /class="job-search-card__location"[^>]*>([^<]+)/g;
+  while ((m = locPat.exec(html)) !== null) locations.push(m[1].trim());
+
+  const urls: string[] = [];
+  const urlPat = /class="base-card__full-link"[^>]*href="([^"?]+)/g;
+  while ((m = urlPat.exec(html)) !== null) urls.push(m[1]);
+
+  for (let i = 0; i < titles.length; i++) {
+    const key = `${titles[i]}-${companies[i] || ""}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    jobs.push({
+      title: titles[i],
+      company: companies[i] || "",
+      location: locations[i] || "",
+      salary_min: 0,
+      salary_max: 0,
+      job_type: "Full-time",
+      url: urls[i] || "",
+      posted_date: today,
+      description: "",
+      platform: "linkedin",
+    });
+  }
+  return jobs;
+}
+
+function parseSimplyHiredHtml(html: string): ScrapedJob[] {
+  const jobs: ScrapedJob[] = [];
+  const seen = new Set<string>();
+  const today = new Date().toISOString().split("T")[0];
+
+  let m;
+  const titlePat =
+    /data-testid="searchSerpJob"[\s\S]*?<h2[^>]*>(?:<a[^>]*>)?([^<]+)/g;
+  while ((m = titlePat.exec(html)) !== null) {
+    const title = m[1].trim();
+    if (!title || seen.has(title)) continue;
+    seen.add(title);
+    jobs.push({
+      title,
+      company: "",
+      location: "",
+      salary_min: 0,
+      salary_max: 0,
+      job_type: "Full-time",
+      url: "",
+      posted_date: today,
+      description: "",
+      platform: "simplyhired",
+    });
+  }
+  return jobs;
+}
+
+async function scrapeIndeed(
+  query: string,
+  location: string
+): Promise<ScrapedJob[]> {
+  const url = `https://www.indeed.com/jobs?q=${encodeURIComponent(query)}&l=${encodeURIComponent(location)}&fromage=14`;
+  const html = await fetchViaScraperApi(url);
+  return html.length > 500 ? parseIndeedHtml(html) : [];
+}
+
+async function scrapeLinkedIn(
+  query: string,
+  location: string
+): Promise<ScrapedJob[]> {
+  const url = `https://www.linkedin.com/jobs/search?keywords=${encodeURIComponent(query)}&location=${encodeURIComponent(location)}`;
+  const html = await fetchViaScraperApi(url);
+  return html.length > 500 ? parseLinkedInHtml(html) : [];
+}
+
+async function scrapeSimplyHired(
+  query: string,
+  location: string
+): Promise<ScrapedJob[]> {
+  const url = `https://www.simplyhired.com/search?q=${encodeURIComponent(query)}&l=${encodeURIComponent(location)}`;
+  const html = await fetchViaScraperApi(url);
+  return html.length > 500 ? parseSimplyHiredHtml(html) : [];
 }
 
 export async function POST(req: NextRequest) {
   if (!SCRAPER_API_KEY) {
-    return NextResponse.json({ error: "SCRAPER_API_KEY not configured" }, { status: 500 });
+    return NextResponse.json(
+      { error: "SCRAPER_API_KEY not configured" },
+      { status: 500 }
+    );
   }
 
   try {
     const body = await req.json().catch(() => ({}));
     const query = body.query || "software engineer";
     const location = body.location || "Seattle, WA";
+    const sources: string[] = body.sources || ["indeed"];
 
-    const indeedUrl = `https://www.indeed.com/jobs?q=${encodeURIComponent(query)}&l=${encodeURIComponent(location)}&fromage=14`;
-    const scraperUrl = `https://api.scraperapi.com?api_key=${SCRAPER_API_KEY}&url=${encodeURIComponent(indeedUrl)}`;
+    const scrapers: Record<
+      string,
+      (q: string, l: string) => Promise<ScrapedJob[]>
+    > = {
+      indeed: scrapeIndeed,
+      linkedin: scrapeLinkedIn,
+      simplyhired: scrapeSimplyHired,
+    };
 
-    const res = await fetch(scraperUrl);
-    const html = await res.text();
+    const results = await Promise.allSettled(
+      sources.map((s) => scrapers[s]?.(query, location) ?? Promise.resolve([]))
+    );
 
-    if (html.length < 500) {
-      return NextResponse.json({ error: "Scraper returned insufficient data", htmlLength: html.length }, { status: 502 });
-    }
+    const allJobs: ScrapedJob[] = [];
+    const sourceResults: Record<string, number> = {};
+    results.forEach((r, i) => {
+      const source = sources[i];
+      if (r.status === "fulfilled") {
+        allJobs.push(...r.value);
+        sourceResults[source] = r.value.length;
+      } else {
+        sourceResults[source] = 0;
+      }
+    });
 
-    const jobs = parseIndeedHtml(html);
-
-    if (jobs.length === 0) {
-      return NextResponse.json({ error: "No jobs parsed from HTML", htmlLength: html.length }, { status: 404 });
+    if (allJobs.length === 0) {
+      return NextResponse.json(
+        { error: "No jobs found", sourceResults },
+        { status: 404 }
+      );
     }
 
     const now = new Date().toISOString().replace("T", " ").split(".")[0];
-    const values = jobs
-      .filter((j) => j.title && j.company)
+    const values = allJobs
+      .filter((j) => j.title)
       .map((j) => {
         const jid = randomUUID();
-        return `('${jid}', '${esc(j.title)}', '${esc(j.company)}', '${esc(j.location)}', ${j.salary_min}, ${j.salary_max}, '${esc(j.job_type)}', 'indeed-live', '${esc(j.url)}', '${esc(j.description)}', '${j.posted_date}', '${now}')`;
+        return `('${jid}', '${esc(j.title)}', '${esc(j.company)}', '${esc(j.location)}', ${j.salary_min}, ${j.salary_max}, '${esc(j.job_type)}', '${j.platform}', '${esc(j.url)}', '${esc(j.description)}', '${j.posted_date}', '${now}')`;
       });
 
     if (values.length > 0) {
@@ -134,15 +236,21 @@ export async function POST(req: NextRequest) {
       success: true,
       query,
       location,
-      jobs_scraped: jobs.length,
-      jobs_inserted: values.length,
-      sample: jobs.slice(0, 5).map((j) => ({
+      sourceResults,
+      total_scraped: allJobs.length,
+      total_inserted: values.length,
+      jobs: allJobs.slice(0, 50).map((j) => ({
         title: j.title,
         company: j.company,
         location: j.location,
+        platform: j.platform,
+        url: j.url,
       })),
     });
   } catch (e) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 });
+    return NextResponse.json(
+      { error: (e as Error).message },
+      { status: 500 }
+    );
   }
 }
