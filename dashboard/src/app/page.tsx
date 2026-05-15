@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import KanbanBoard from "@/components/KanbanBoard";
 import AnalyticsPanel from "@/components/AnalyticsPanel";
 import EmailFeed from "@/components/EmailFeed";
+import SimulateButton from "@/components/SimulateButton";
 import { ApplicationWithJob, Analytics } from "@/lib/types";
 
 type Tab = "kanban" | "analytics" | "emails";
@@ -15,24 +16,25 @@ export default function Home() {
   const [emails, setEmails] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      setLoading(true);
-      try {
-        const [appsRes, analyticsRes, emailsRes] = await Promise.all([
-          fetch("/api/applications"),
-          fetch("/api/analytics"),
-          fetch("/api/emails"),
-        ]);
-        setApplications(await appsRes.json());
-        setAnalytics(await analyticsRes.json());
-        setEmails(await emailsRes.json());
-      } catch (e) {
-        console.error("Failed to load data:", e);
-      }
-      setLoading(false);
+  async function loadData() {
+    setLoading(true);
+    try {
+      const [appsRes, analyticsRes, emailsRes] = await Promise.all([
+        fetch("/api/applications"),
+        fetch("/api/analytics"),
+        fetch("/api/emails"),
+      ]);
+      setApplications(await appsRes.json());
+      setAnalytics(await analyticsRes.json());
+      setEmails(await emailsRes.json());
+    } catch (e) {
+      console.error("Failed to load data:", e);
     }
-    load();
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadData();
   }, []);
 
   return (
@@ -87,6 +89,9 @@ export default function Home() {
       </header>
 
       <main className="max-w-[1600px] mx-auto px-6 py-6">
+        <div className="mb-6">
+          <SimulateButton onUpdate={loadData} />
+        </div>
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
