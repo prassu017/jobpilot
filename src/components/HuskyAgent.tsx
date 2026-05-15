@@ -31,6 +31,8 @@ interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   resumeHtml?: string;
+  coverLetterHtml?: string;
+  fileName?: string;
 }
 
 const STAGE_STYLE: Record<string, string> = {
@@ -48,7 +50,7 @@ function getSuggestions(tracker: TrackerData | null): string[] {
       "What can you help me with?",
       "Help me start my job search",
       "What makes a strong application?",
-      "Review my resume strategy",
+      "Optimize my resume for a role",
     ];
   }
 
@@ -71,15 +73,31 @@ function getSuggestions(tracker: TrackerData | null): string[] {
   if (stale.length > 0) {
     suggestions.push(`Which ${stale.length} apps need a follow-up?`);
   }
+  suggestions.push("Optimize my resume for a role");
   suggestions.push("What patterns do you see in my rejections?");
   if (suggestions.length < 4) {
     suggestions.push("Give me a full status breakdown");
   }
-  if (suggestions.length < 4) {
-    suggestions.push("What should I focus on this week?");
-  }
 
   return suggestions.slice(0, 4);
+}
+
+function downloadFile(html: string, filename: string) {
+  const blob = new Blob([html], { type: "text/html" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function previewFile(html: string) {
+  const w = window.open("", "_blank");
+  if (w) {
+    w.document.write(html);
+    w.document.close();
+  }
 }
 
 export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void }) {
@@ -92,6 +110,15 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
   const [input, setInput] = useState("");
   const [thinking, setThinking] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [resumeText, setResumeText] = useState<string>("");
+  const [resumeFileName, setResumeFileName] = useState<string>("");
+  const [linkedinUrl, setLinkedinUrl] = useState<string>("");
+  const [linkedinData, setLinkedinData] = useState<string>("");
+  const [onboardingDone, setOnboardingDone] = useState(false);
+  const [uploadingResume, setUploadingResume] = useState(false);
+  const [scrapingLinkedin, setScrapingLinkedin] = useState(false);
 
   async function loadTracker() {
     try {
@@ -107,11 +134,62 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
       .then((r) => r.json())
       .then((d) => setGmailConnected(d.connected))
       .catch(() => {});
+    const saved = localStorage.getItem("dubsy_resume_text");
+    const savedName = localStorage.getItem("dubsy_resume_filename");
+    const savedLinkedin = localStorage.getItem("dubsy_linkedin_data");
+    const savedLinkedinUrl = localStorage.getItem("dubsy_linkedin_url");
+    if (saved) {
+      setResumeText(saved);
+      setResumeFileName(savedName || "resume");
+      setOnboardingDone(true);
+    }
+    if (savedLinkedin) setLinkedinData(savedLinkedin);
+    if (savedLinkedinUrl) setLinkedinUrl(savedLinkedinUrl);
   }, []);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, thinking]);
+
+  async function handleResumeUpload(file: File) {
+    setUploadingResume(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await fetch("/api/parse-resume", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.text) {
+        setResumeText(data.text);
+        setResumeFileName(data.filename || file.name);
+        localStorage.setItem("dubsy_resume_text", data.text);
+        localStorage.setItem("dubsy_resume_filename", data.filename || file.name);
+      }
+    } catch {}
+    setUploadingResume(false);
+  }
+
+  async function handleLinkedinScrape() {
+    if (!linkedinUrl.trim()) return;
+    setScrapingLinkedin(true);
+    try {
+      const res = await fetch("/api/scrape-linkedin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ url: linkedinUrl.trim() }),
+      });
+      const data = await res.json();
+      if (data.profileData) {
+        setLinkedinData(data.profileData);
+        localStorage.setItem("dubsy_linkedin_data", data.profileData);
+        localStorage.setItem("dubsy_linkedin_url", linkedinUrl.trim());
+      }
+    } catch {}
+    setScrapingLinkedin(false);
+  }
+
+  function finishOnboarding() {
+    setOnboardingDone(true);
+  }
 
   async function sendMessage(text?: string) {
     const msg = text || input.trim();
@@ -128,11 +206,22 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           messages: newMessages.map((m) => ({ role: m.role, content: m.content })),
+          resumeText,
+          linkedinData,
         }),
       });
       const data = await res.json();
       if (data.response) {
-        setMessages([...newMessages, { role: "assistant", content: data.response, resumeHtml: data.resumeHtml || undefined }]);
+        setMessages([
+          ...newMessages,
+          {
+            role: "assistant",
+            content: data.response,
+            resumeHtml: data.resumeHtml || undefined,
+            coverLetterHtml: data.coverLetterHtml || undefined,
+            fileName: data.fileName || undefined,
+          },
+        ]);
       } else {
         setMessages([...newMessages, { role: "assistant", content: data.error || "Something went wrong." }]);
       }
@@ -185,7 +274,6 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
             </div>
           </div>
           <div className="flex items-center gap-2">
-            {/* View toggle */}
             <div className="flex rounded-lg border border-border overflow-hidden text-[10px] font-mono uppercase tracking-widest">
               <button
                 onClick={() => setView("chat")}
@@ -249,14 +337,128 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
         <div className="bg-card border border-border rounded-lg flex flex-col" style={{ height: "calc(100vh - 320px)", minHeight: "400px" }}>
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
-            {messages.length === 0 && (
+            {messages.length === 0 && !onboardingDone && (
+              <div className="h-full flex flex-col items-center justify-center space-y-6">
+                <div className="text-center space-y-2">
+                  <p className="text-4xl">🐺</p>
+                  <p className="text-sm font-medium">Hey! I&apos;m Dubsy - let&apos;s get set up</p>
+                  <p className="text-xs text-muted-foreground max-w-sm">
+                    Upload your resume and LinkedIn so I can give you personalized, ATS-optimized career help.
+                  </p>
+                </div>
+
+                <div className="w-full max-w-md space-y-4">
+                  {/* Resume Upload */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                      Upload your resume (PDF, DOCX, or TXT)
+                    </label>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".pdf,.docx,.doc,.txt,.rtf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) handleResumeUpload(file);
+                      }}
+                    />
+                    <button
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploadingResume}
+                      className={cn(
+                        "w-full px-4 py-3 rounded-lg border-2 border-dashed transition-all text-sm",
+                        resumeText
+                          ? "border-primary/40 bg-primary/5 text-primary"
+                          : "border-border hover:border-primary/30 text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {uploadingResume ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <span className="w-1.5 h-1.5 bg-primary rounded-full animate-pulse" />
+                          Parsing resume...
+                        </span>
+                      ) : resumeText ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
+                          {resumeFileName} uploaded
+                        </span>
+                      ) : (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+                          Click to upload resume
+                        </span>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* LinkedIn URL */}
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">
+                      LinkedIn profile URL
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        value={linkedinUrl}
+                        onChange={(e) => setLinkedinUrl(e.target.value)}
+                        placeholder="https://linkedin.com/in/yourprofile"
+                        className="flex-1 bg-white/[0.03] border border-border rounded-lg px-3 py-2.5 text-sm placeholder:text-muted-foreground focus:outline-none focus:border-primary/50 transition-colors"
+                      />
+                      <button
+                        onClick={handleLinkedinScrape}
+                        disabled={!linkedinUrl.trim() || scrapingLinkedin}
+                        className="px-3 py-2.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-mono uppercase tracking-widest hover:bg-blue-500/20 transition-colors disabled:opacity-30"
+                      >
+                        {scrapingLinkedin ? "..." : linkedinData ? "Done" : "Fetch"}
+                      </button>
+                    </div>
+                    {linkedinData && (
+                      <p className="text-[10px] font-mono text-primary">LinkedIn profile data loaded</p>
+                    )}
+                  </div>
+
+                  {/* Continue Button */}
+                  <button
+                    onClick={finishOnboarding}
+                    className="w-full px-4 py-3 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+                  >
+                    {resumeText ? "Continue to Chat" : "Skip for Now"}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {messages.length === 0 && onboardingDone && (
               <div className="h-full flex flex-col items-center justify-center space-y-6">
                 <div className="text-center space-y-2">
                   <p className="text-4xl">🐺</p>
                   <p className="text-sm font-medium">Hey! I&apos;m Dubsy</p>
                   <p className="text-xs text-muted-foreground max-w-sm">
-                    Your AI assistant with access to your job tracker and email. Ask me anything - career advice, application status, interview prep, or just chat.
+                    Your AI assistant with access to your job tracker and email. Ask me anything - career advice, application status, interview prep, or generate an ATS-optimized resume.
                   </p>
+                  {resumeText && (
+                    <div className="flex items-center justify-center gap-2 mt-2">
+                      <span className="text-[10px] font-mono text-primary bg-primary/10 px-2 py-1 rounded-full border border-primary/20">
+                        Resume: {resumeFileName}
+                      </span>
+                      <button
+                        onClick={() => {
+                          setOnboardingDone(false);
+                        }}
+                        className="text-[10px] font-mono text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        Change
+                      </button>
+                    </div>
+                  )}
+                  {!resumeText && (
+                    <button
+                      onClick={() => setOnboardingDone(false)}
+                      className="text-[10px] font-mono text-primary hover:text-primary/80 transition-colors mt-2 inline-block"
+                    >
+                      Upload resume for better results
+                    </button>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-2 max-w-md w-full">
                   {getSuggestions(tracker).map((s) => (
@@ -271,6 +473,7 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
                 </div>
               </div>
             )}
+
             {messages.map((msg, i) => (
               <div key={i} className={cn("flex", msg.role === "user" ? "justify-end" : "justify-start")}>
                 <div
@@ -284,34 +487,40 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
                   {msg.role === "assistant" ? (
                     <div className="space-y-2">
                       <div className="whitespace-pre-wrap">{msg.content}</div>
-                      {msg.resumeHtml && (
-                        <div className="flex gap-2 mt-3 pt-3 border-t border-border">
-                          <button
-                            onClick={() => {
-                              const blob = new Blob([msg.resumeHtml!], { type: "text/html" });
-                              const url = URL.createObjectURL(blob);
-                              const a = document.createElement("a");
-                              a.href = url;
-                              a.download = "resume.html";
-                              a.click();
-                              URL.revokeObjectURL(url);
-                            }}
-                            className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-mono uppercase tracking-widest hover:bg-primary/90 transition-colors"
-                          >
-                            Download Resume
-                          </button>
-                          <button
-                            onClick={() => {
-                              const w = window.open("", "_blank");
-                              if (w) {
-                                w.document.write(msg.resumeHtml!);
-                                w.document.close();
-                              }
-                            }}
-                            className="px-3 py-1.5 rounded-lg border border-border text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
-                          >
-                            Preview
-                          </button>
+                      {(msg.resumeHtml || msg.coverLetterHtml) && (
+                        <div className="mt-3 pt-3 border-t border-border space-y-2">
+                          {msg.resumeHtml && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => downloadFile(msg.resumeHtml!, `${msg.fileName || "resume"}_Resume.html`)}
+                                className="px-3 py-1.5 rounded-lg bg-primary text-primary-foreground text-[11px] font-mono uppercase tracking-widest hover:bg-primary/90 transition-colors"
+                              >
+                                Download Resume
+                              </button>
+                              <button
+                                onClick={() => previewFile(msg.resumeHtml!)}
+                                className="px-3 py-1.5 rounded-lg border border-border text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                              >
+                                Preview
+                              </button>
+                            </div>
+                          )}
+                          {msg.coverLetterHtml && (
+                            <div className="flex gap-2">
+                              <button
+                                onClick={() => downloadFile(msg.coverLetterHtml!, `${msg.fileName || "cover_letter"}_CoverLetter.html`)}
+                                className="px-3 py-1.5 rounded-lg bg-blue-500/20 text-blue-300 border border-blue-500/30 text-[11px] font-mono uppercase tracking-widest hover:bg-blue-500/30 transition-colors"
+                              >
+                                Download Cover Letter
+                              </button>
+                              <button
+                                onClick={() => previewFile(msg.coverLetterHtml!)}
+                                className="px-3 py-1.5 rounded-lg border border-border text-[11px] font-mono uppercase tracking-widest text-muted-foreground hover:text-foreground hover:border-primary/30 transition-colors"
+                              >
+                                Preview
+                              </button>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -363,7 +572,6 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
       {/* Tracker View */}
       {view === "tracker" && (
         <>
-          {/* Quick Stats */}
           {analytics && analytics.total > 0 && (
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {[
@@ -381,7 +589,6 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
             </div>
           )}
 
-          {/* Tracker Table */}
           <div className="bg-card border border-border rounded-lg overflow-hidden">
             <div className="flex items-center justify-between px-5 py-4 border-b border-border">
               <h3 className="text-sm font-bold tracking-tight uppercase">

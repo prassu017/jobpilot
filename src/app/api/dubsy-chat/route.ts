@@ -82,13 +82,13 @@ const tools: Anthropic.Tool[] = [
   },
   {
     name: "generate_resume",
-    description: "Generate a tailored, ATS-friendly resume as a downloadable HTML file. Use this when the user asks to create, generate, build, or update their resume. The resume will be tailored to the target role and company.",
+    description: "Generate an ATS-optimized resume AND cover letter tailored to a specific job posting. Use this when the user asks to create, generate, build, update, or optimize their resume. Always ask for or use the job description if available. Returns both resume and cover letter as downloadable files.",
     input_schema: {
       type: "object" as const,
       properties: {
         target_role: { type: "string", description: "The job title/role to tailor the resume for" },
-        target_company: { type: "string", description: "The company to tailor the resume for (optional)" },
-        user_context: { type: "string", description: "Additional context about the user's experience, skills, and background to include" },
+        target_company: { type: "string", description: "The company to tailor the resume for" },
+        job_description: { type: "string", description: "The full job description/posting text to optimize against" },
       },
       required: ["target_role"],
     },
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    const { messages } = await req.json();
+    const { messages, resumeText, linkedinData } = await req.json();
     const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
     const trackerRaw = readTracker();
@@ -163,11 +163,22 @@ export async function POST(req: NextRequest) {
 - Be concise but warm. Use emoji sparingly.
 - When asked about specific companies, search emails for the latest correspondence
 
-Gmail connected: ${isConnected() ? "Yes" : "No"}`;
+Gmail connected: ${isConnected() ? "Yes" : "No"}
+User's resume uploaded: ${resumeText ? "Yes (" + resumeText.length + " chars)" : "No"}
+LinkedIn data available: ${linkedinData ? "Yes" : "No"}
+
+## Resume Generation Rules
+- When asked to generate/optimize a resume, ALWAYS use the generate_resume tool
+- Ask for the job description/posting if the user hasn't provided one - this is critical for ATS optimization
+- The tool will generate BOTH an optimized resume AND a tailored cover letter
+- If the user has uploaded their resume, it will be used as the base - only text content is modified, format is preserved
+- Files are named as Firstname_Lastname_JobTitle_Company_Date`;
 
     let currentMessages = messages;
     let finalResponse = "";
     let resumeHtml: string | null = null;
+    let coverLetterHtml: string | null = null;
+    let fileName: string | null = null;
 
     for (let i = 0; i < 5; i++) {
       const response = await anthropic.messages.create({
@@ -194,7 +205,7 @@ Gmail connected: ${isConnected() ? "Yes" : "No"}`;
           } else if (block.name === "get_tracker") {
             result = readTracker();
           } else if (block.name === "generate_resume") {
-            const input = block.input as { target_role: string; target_company?: string; user_context?: string };
+            const input = block.input as { target_role: string; target_company?: string; job_description?: string };
             try {
               const resumeRes = await fetch(new URL("/api/generate-resume", req.url).toString(), {
                 method: "POST",
@@ -202,13 +213,17 @@ Gmail connected: ${isConnected() ? "Yes" : "No"}`;
                 body: JSON.stringify({
                   targetRole: input.target_role,
                   targetCompany: input.target_company || "",
-                  userContext: input.user_context || "",
+                  jobDescription: input.job_description || "",
+                  resumeText: resumeText || "",
+                  linkedinData: linkedinData || "",
                 }),
               });
               const resumeData = await resumeRes.json();
-              if (resumeData.html) {
-                resumeHtml = resumeData.html;
-                result = "Resume generated successfully. The user can now download it.";
+              if (resumeData.resumeHtml) {
+                resumeHtml = resumeData.resumeHtml;
+                coverLetterHtml = resumeData.coverLetterHtml || null;
+                fileName = resumeData.fileName || "resume";
+                result = "Resume and cover letter generated successfully. The user can now download both files.";
               } else {
                 result = "Failed to generate resume: " + (resumeData.error || "Unknown error");
               }
@@ -231,7 +246,7 @@ Gmail connected: ${isConnected() ? "Yes" : "No"}`;
       ];
     }
 
-    return NextResponse.json({ response: finalResponse, resumeHtml });
+    return NextResponse.json({ response: finalResponse, resumeHtml, coverLetterHtml, fileName });
   } catch (e) {
     return NextResponse.json({ error: (e as Error).message }, { status: 500 });
   }
