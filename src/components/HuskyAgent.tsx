@@ -254,7 +254,7 @@ export default function HuskyAgent({ onDataUpdate }: { onDataUpdate: () => void 
                   <p className="text-4xl">🐺</p>
                   <p className="text-sm font-medium">Hey! I&apos;m Dubsy</p>
                   <p className="text-xs text-muted-foreground max-w-sm">
-                    Your AI assistant with access to your job tracker and email. Ask me anything — career advice, application status, interview prep, or just chat.
+                    Your AI assistant with access to your job tracker and email. Ask me anything - career advice, application status, interview prep, or just chat.
                   </p>
                 </div>
                 <div className="grid grid-cols-2 gap-2 max-w-md w-full">
