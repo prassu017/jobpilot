@@ -6,15 +6,48 @@ import { Job } from "@/lib/types";
 function platformBadge(platform: string) {
   const colors: Record<string, string> = {
     indeed: "bg-blue-100 text-blue-700",
+    "indeed-live": "bg-blue-200 text-blue-800",
     linkedin: "bg-sky-100 text-sky-700",
     glassdoor: "bg-green-100 text-green-700",
   };
   return colors[platform] || "bg-gray-100 text-gray-700";
 }
 
-export default function JobDiscovery({ jobs }: { jobs: Job[] }) {
+export default function JobDiscovery({
+  jobs,
+  onRefresh,
+}: {
+  jobs: Job[];
+  onRefresh: () => void;
+}) {
   const [search, setSearch] = useState("");
   const [locationFilter, setLocationFilter] = useState("");
+  const [scrapeQuery, setScrapeQuery] = useState("software engineer");
+  const [scrapeLocation, setScrapeLocation] = useState("Seattle, WA");
+  const [scraping, setScraping] = useState(false);
+  const [scrapeResult, setScrapeResult] = useState<string | null>(null);
+
+  async function handleScrape() {
+    setScraping(true);
+    setScrapeResult(null);
+    try {
+      const res = await fetch("/api/scrape-jobs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query: scrapeQuery, location: scrapeLocation }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setScrapeResult(`Scraped ${data.jobs_scraped} jobs from Indeed`);
+        onRefresh();
+      } else {
+        setScrapeResult(`Error: ${data.error}`);
+      }
+    } catch (e) {
+      setScrapeResult("Failed to scrape");
+    }
+    setScraping(false);
+  }
 
   const filtered = jobs.filter((j) => {
     const matchesSearch =
@@ -27,15 +60,55 @@ export default function JobDiscovery({ jobs }: { jobs: Job[] }) {
     return matchesSearch && matchesLocation;
   });
 
-  const realJobs = filtered.filter((j) => j.url?.startsWith("https://to.indeed.com"));
-  const seedJobs = filtered.filter((j) => !j.url?.startsWith("https://to.indeed.com"));
+  const realJobs = filtered.filter(
+    (j) => j.platform === "indeed" || j.platform === "indeed-live"
+  );
+  const seedJobs = filtered.filter(
+    (j) => j.platform !== "indeed" && j.platform !== "indeed-live"
+  );
 
   return (
     <div className="space-y-4">
+      {/* Scrape bar */}
+      <div className="bg-white rounded-xl border border-indigo-200 p-4 shadow-sm">
+        <h3 className="text-sm font-bold text-gray-800 mb-3">
+          Scrape Live Jobs from Indeed
+        </h3>
+        <div className="flex gap-3">
+          <input
+            type="text"
+            placeholder="Job title or keywords..."
+            value={scrapeQuery}
+            onChange={(e) => setScrapeQuery(e.target.value)}
+            className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          />
+          <input
+            type="text"
+            placeholder="Location..."
+            value={scrapeLocation}
+            onChange={(e) => setScrapeLocation(e.target.value)}
+            className="w-48 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          />
+          <button
+            onClick={handleScrape}
+            disabled={scraping}
+            className="px-5 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white text-sm font-medium rounded-lg hover:from-blue-600 hover:to-indigo-700 disabled:opacity-50 transition-all whitespace-nowrap"
+          >
+            {scraping ? "Scraping..." : "Scrape Indeed"}
+          </button>
+        </div>
+        {scrapeResult && (
+          <div className="mt-2 text-sm text-indigo-600 font-medium">
+            {scrapeResult}
+          </div>
+        )}
+      </div>
+
+      {/* Filter bar */}
       <div className="flex gap-3">
         <input
           type="text"
-          placeholder="Search by title or company..."
+          placeholder="Filter by title or company..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"

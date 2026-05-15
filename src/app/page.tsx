@@ -108,7 +108,7 @@ export default function Home() {
           </div>
         ) : (
           <>
-            {tab === "jobs" && <JobDiscovery jobs={jobs} />}
+            {tab === "jobs" && <JobDiscovery jobs={jobs} onRefresh={loadData} />}
             {tab === "kanban" && (
               <KanbanBoard applications={applications} />
             )}
