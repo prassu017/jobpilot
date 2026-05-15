@@ -287,21 +287,11 @@ export default function JobDiscovery({
                 </span>
               </div>
 
-              {job.description && (
+              {job.job_type && job.job_type !== "Full-time" && (
                 <div className="flex flex-wrap gap-1.5">
-                  {job.description
-                    .split(",")
-                    .slice(0, 4)
-                    .map((tag) => tag.trim())
-                    .filter(Boolean)
-                    .map((tag) => (
-                      <span
-                        key={tag}
-                        className="px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-white/5 text-muted-foreground border border-white/5"
-                      >
-                        {tag}
-                      </span>
-                    ))}
+                  <span className="px-2 py-0.5 rounded text-[10px] font-mono uppercase tracking-wider bg-white/5 text-muted-foreground border border-white/5">
+                    {job.job_type}
+                  </span>
                 </div>
               )}
 
