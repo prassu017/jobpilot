@@ -2,57 +2,223 @@ company,title,stage,applied_on,platform,location,url,salary,notes
 Nexhelm AI,Employee,OFFER,2026-05-11,direct,,,,Offer letter received
 Macy's,Assistant Product Manager,APPLIED,2026-05-14,direct,New York NY,,,Application submitted
 Macy's,Product Manager,APPLIED,2026-04-24,direct,New York NY,,,Application submitted
+Macy's,Assistant Product Management,APPLIED,2026-03-26,direct,New York NY,,,Application submitted
 Instacart,Associate Product Manager,APPLIED,2026-05-09,direct,San Francisco CA,,,Application submitted
-Cascade AI,Founding Engineer,APPLIED,2026-04-26,direct,,,,Application submitted
+Fox Corporation,Machine Learning Engineer FOX Forward Deployed,REJECTED,2026-05-03,direct,,,,Decided to move forward with others
+Cascade AI,Founding Engineer,APPLIED,2026-04-26,direct,,,,Application via Dover
 Y Combinator,HireCrit Application,APPLIED,2026-05-05,yc,,,,YC startup application
-Otter.ai,Data Scientist Product,REJECTED,2026-04-15,direct,,,,Rejection received
-SolidProfessor,Product Manager,REJECTED,2026-04-10,direct,,,,Rejection received
-Rockwool,Product Manager,REJECTED,2026-04-08,indeed,,,,Rejection via Indeed
-Bending Spoons,Graduate AI Software Engineer,REJECTED,2026-04-05,direct,,,,Rejection received
-Bending Spoons,AI Research Engineer,APPLIED,2026-04-01,direct,,,,Application submitted
-SentiLink,Fraud Intelligence Analyst,REJECTED,2026-03-28,direct,,,,Rejection received
-SentiLink,Applied ML Scientist,REJECTED,2026-03-25,direct,,,,Rejection received
-Frontline Education,Product Manager,REJECTED,2026-03-20,direct,,,,Rejection received
-Frontline Education,Senior Product Manager,REJECTED,2026-03-20,direct,,,,Rejection received
-Jobright.ai,Product Manager Early Career,REJECTED,2026-03-15,direct,,,,Rejection received
-Hive,Software Engineer Backend,APPLIED,2026-04-20,direct,,,,Application submitted
-Housecall Pro,Product Manager II Mobile,REJECTED,2026-03-10,direct,,,,Rejection received
-Ellipsis Labs,Software Engineer 2027 New Grads,APPLIED,2026-04-18,direct,,,,Application submitted
-Suede/Miirr.ai,Founding Engineer,INTERVIEW,2026-04-22,direct,,,,Interview scheduled with Shama
-Amazon,Data Engineer,REJECTED,2026-03-05,amazon,Seattle WA,,,Rejection received
-Amazon,SDE 2026,APPLIED,2026-02-28,amazon,Seattle WA,,,Application submitted
-Amazon,Data Science Internship,APPLIED,2026-02-15,amazon,Seattle WA,,,Application submitted
-Amazon,BI Engineer II,APPLIED,2026-02-10,amazon,Seattle WA,,,Application submitted
-Amazon,Annapurna Labs ML,APPLIED,2026-01-20,amazon,Seattle WA,,,Application submitted
-D. E. Shaw,AI Product Manager Discretionary Technology,APPLIED,2026-04-30,direct,New York NY,,,Application starred
-Cartesia,Research Engineer Data,REJECTED,2026-03-18,direct,,,,Rejection received
-Kinnect,Application,INTERVIEW,2026-04-25,direct,,,,Application accepted - interview stage
-Distyl AI,AI Engineer New Graduate,REJECTED,2026-03-12,direct,,,,Rejection received
-Conversica,Software Engineer AI Platform,APPLIED,2026-04-15,direct,,,,Application submitted
-Bumble,Associate Product Manager New Grad,APPLIED,2026-04-10,direct,,,,Application submitted
-Nebius,AI/ML Specialist,REJECTED,2026-03-08,direct,,,,Rejection received
-Nebius,Early Talent Program,APPLIED,2026-03-01,direct,,,,Application submitted
-Mechanize,Engineer,REJECTED,2026-03-05,direct,,,,Rejection received
-Praetorian,AI Operations Engineer,REJECTED,2026-02-25,direct,,,,Rejection received
-IBM,Entry Level Product Manager,REJECTED,2026-02-20,direct,,,,Rejection received
-IBM,Entry Level Product Manager II,REJECTED,2026-02-18,direct,,,,Rejection received
-IBM,Data Engineer,REJECTED,2026-02-15,direct,,,,Rejection received
-IBM,AI/ML Engineer,REJECTED,2026-02-10,direct,,,,Rejection received
-Intuit,Data Engineer SWE2,APPLIED,2026-04-05,direct,,,,Application submitted
-WHOOP,Analytics Platform Co-op,APPLIED,2026-03-28,direct,Boston MA,,,Application submitted
-WHOOP,Business Analyst II AI Product,APPLIED,2026-03-25,direct,Boston MA,,,Application submitted
-Duolingo,Data Scientist User Growth,REJECTED,2026-02-05,direct,Pittsburgh PA,,,Rejection received
-Commons,Data/AI Engineer,REJECTED,2026-02-01,direct,,,,Rejection received
-Mercura,AI Engineering Intern,REJECTED,2026-01-28,direct,,,,Rejection received
-PACCAR,AI/ML Product Manager Intern,REJECTED,2026-01-25,direct,,,,Rejection received
-Cimento AI,Founding Engineer,APPLIED,2026-04-02,direct,,,,Application submitted
-Mintlify,Product Manager,REJECTED,2026-01-20,direct,,,,Rejection received
-Michels Corporation,Summer 2026 Internship,APPLIED,2026-01-15,direct,,,,Application submitted
-INSIGHT2PROFIT,Data Analytics Analyst,APPLIED,2026-03-20,direct,,,,Application submitted
-Texas Instruments,New College Graduate Data Engineer,APPLIED,2026-03-15,direct,Dallas TX,,,Application submitted
-Further,Application,APPLIED,2026-03-10,direct,,,,Application submitted
-Tapestry,Analytics Intern,REJECTED,2026-01-10,direct,New York NY,,,Rejection received
-Stearns Bank,Fintech Analyst,APPLIED,2026-03-05,direct,,,,Application submitted
-Shutterfly,EHS Systems Data Analyst,REJECTED,2026-01-05,direct,,,,Rejection received
-FlairX,Application,APPLIED,2026-03-01,linkedin,,,,Applied via LinkedIn
-Leviton,Associate Product Manager,APPLIED,2026-02-25,direct,,,,Application submitted
+Otter.ai,Data Scientist Product,REJECTED,2026-04-21,direct,,,,Rejection received
+Luminai,Application,APPLIED,2026-04-16,direct,,,,Application via Ashby
+Fox Corporation,Application,APPLIED,2026-04-15,direct,,,,Application submitted
+Leviton,Associate Product Manager,REJECTED,2026-04-12,icims,,,,Rejection received
+Garner Health,Application,APPLIED,2026-04-10,direct,,,,Application received
+Uber,Graduate 2026 Software Engineer I,APPLIED,2026-04-10,icims,,,,Application submitted
+RealPage,Product Manager - Remote,APPLIED,2026-03-31,icims,,,,Application submitted
+Housecall Pro,Product Manager II Mobile,REJECTED,2026-03-31,greenhouse,,,,Rejection received
+Delaney Co,Application,APPLIED,2026-03-31,paylocity,,,,Application submitted
+DoorDash,Associate Drive,APPLIED,2026-03-29,direct,,,,Application submitted
+Alto Pharmacy,Application,APPLIED,2026-03-26,workday,,,,Application submitted
+Samsara,Associate Product Manager,APPLIED,2026-03-26,greenhouse,,,,Application submitted
+PatientNow,Associate Product Manager,APPLIED,2026-03-26,rippling,,,,Application submitted
+IXL Learning,Application,APPLIED,2026-03-26,direct,,,,Application submitted
+Handshake,AI Fellow Experience Specialist Contract,APPLIED,2026-03-26,ashby,,,,Application submitted
+Echo Global Logistics,Product Manager,APPLIED,2026-03-25,workday,,,,Application submitted
+Artefact,Application,APPLIED,2026-03-22,direct,,,,Application submitted
+TikTok,Product Manager Graduate Content Ecosystem 2026,SCREENING,2026-03-20,tiktok,,,,Online assessment invited
+Chewy,Application,APPLIED,2026-03-14,workday,,,,Application submitted
+Handshake,AI/ML Engineer Intern,APPLIED,2026-03-07,ashby,,,,Application submitted
+TikTok,AI Product Manager Graduate Social and Creation 2026,SCREENING,2026-03-07,tiktok,,,,Online assessment invited
+Twinmind,Product Manager,APPLIED,2026-03-06,direct,,,,Application submitted
+Praetorian,AI Operations Engineer,REJECTED,2026-03-07,direct,,,,Rejection received
+Mechanize,Engineer,REJECTED,2026-03-08,direct,,,,Rejection received
+Amazon,Data Engineer 3141339,APPLIED,2026-02-23,amazon,Seattle WA,,,Application submitted
+Amazon,Annapurna Labs ML Systems Internship,APPLIED,2026-02-23,amazon,Seattle WA,,,Application submitted
+QuinStreet,Data Analyst,APPLIED,2026-02-06,greenhouse,,,,Application submitted
+Standard Metrics,Application,APPLIED,2026-02-01,greenhouse,,,,Application submitted
+Clerkie,Application,APPLIED,2026-01-30,greenhouse,,,,Application submitted
+IntegraFEC,Application,REJECTED,2026-01-25,greenhouse,,,,Rejection received
+Amazon,Software Development Engineer 2026,APPLIED,2026-01-25,amazon,Seattle WA,,,Application submitted
+Amazon,Data Science Internship,APPLIED,2026-01-25,amazon,Seattle WA,,,Application submitted
+Amazon,BI Engineer II,APPLIED,2026-01-25,amazon,Seattle WA,,,Application submitted
+Amazon,Data Engineer 3163492,APPLIED,2026-01-25,amazon,Seattle WA,,,Application submitted
+PACCAR,Data Engineering Intern,APPLIED,2026-01-24,direct,,,,Application submitted
+PACCAR,AI/ML Product Manager Intern,APPLIED,2026-01-24,direct,,,,Application submitted
+Planet Networks,Corporate Strategy Analyst,APPLIED,2026-01-24,bamboohr,,,,Application submitted
+SIXT,Application,APPLIED,2026-01-24,direct,,,,Application submitted
+Floyd Snider,Application,APPLIED,2026-01-22,paylocity,,,,Application submitted
+Distyl AI,AI Engineer New Graduate,REJECTED,2026-01-18,direct,,,,Rejection received
+Western Digital,Early Career Data Engineer,REJECTED,2026-01-16,smartrecruiters,,,,Rejection received
+Western Digital,Early Career Data Engineer,APPLIED,2026-01-14,smartrecruiters,,,,Application submitted
+Bloom Energy,Business Data Analyst Intern,APPLIED,2026-01-04,workday,,,,Application submitted
+Stuller,Customer Data Analyst Intern,INTERVIEW,2026-01-03,direct,,,,Virtual screening with Katie Gilbert
+Factory,Application,REJECTED,2025-12-28,ashby,,,,Rejection received
+Tenable,AI Engineer,REJECTED,2026-01-07,greenhouse,,,,Rejection received
+Tenable,Application,APPLIED,2025-12-26,greenhouse,,,,Application submitted
+TikTok,Product Operations Manager Intern TikTok Shop 2026,APPLIED,2025-12-23,tiktok,,,,Application submitted
+TikTok,Data Scientist Graduate TikTok Shop 2026,APPLIED,2025-12-23,tiktok,,,,Application submitted
+TikTok,Product Manager Graduate TikTok Shop Logistics 2026,APPLIED,2025-12-23,tiktok,,,,Application submitted
+Overland AI,Application,APPLIED,2025-12-21,greenhouse,,,,Application submitted
+Duolingo,Data Scientist User Growth,APPLIED,2025-12-20,direct,Pittsburgh PA,,,Application submitted
+OpenAI,Application,APPLIED,2025-12-20,ashby,,,,Application submitted
+Amazon,Machine Learning Engineer 3137784,APPLIED,2025-12-19,amazon,Seattle WA,,,Application submitted
+Alignment Healthcare,Data Scientist,APPLIED,2025-12-18,workday,,,,Application submitted
+PagerDuty,Product Manager App Platform,REJECTED,2026-01-05,direct,,,,Rejection received
+PagerDuty,Application,APPLIED,2025-12-18,direct,,,,Application submitted
+Oldcastle Infrastructure,EPM Financial Analyst Intern,APPLIED,2025-12-23,crh,,,,Application submitted
+TRC Companies,Digital Business Analyst Intern,APPLIED,2025-12-23,icims,,,,Application submitted
+HealthEdge,Associate BI Analyst,APPLIED,2025-12-17,icims,,,,Application submitted
+Jerry,Product Manager AI Powered Messaging,APPLIED,2025-12-17,ashby,,,,Application submitted
+Jerry,Data Scientist,APPLIED,2025-12-17,ashby,,,,Application submitted
+Qorvo,AI/ML Intern,APPLIED,2025-12-15,successfactors,,,,Application submitted
+New York Life,AI Engineer/Data Scientist Intern,APPLIED,2025-12-15,direct,,,,Application submitted
+JPMorgan Chase,Data Scientist Associate,REJECTED,2026-01-17,oracle,,,,Rejection received
+JPMorgan Chase,Application 210649020,APPLIED,2025-12-15,oracle,,,,Application submitted
+Delphi,Applied AI Engineer,APPLIED,2025-12-27,ashby,,,,Application submitted
+Tessera,Data Analytics Intern,APPLIED,2025-12-03,workday,,,,Application submitted
+Talent Software Services,AI Data Engineer 2,APPLIED,2025-12-03,direct,,,,Application submitted
+Amazon,Annapurna Labs Silicon AI Internship,APPLIED,2025-11-04,amazon,Seattle WA,,,Application submitted
+SeekOut,Application,APPLIED,2025-11-04,greenhouse,,,,Application submitted
+Meta,Data Scientist,APPLIED,2025-11-03,meta,,,,Application submitted
+GoFundMe,Data & Analytics Intern,APPLIED,2025-11-14,greenhouse,,,,Application submitted
+Chewy,Machine Learning Engineer II,APPLIED,2025-11-14,direct,,,,Application submitted
+Symbl.ai,Application,APPLIED,2025-10-20,direct,,,,Application submitted
+Textron,2026 Assoc Program Financial Analyst,APPLIED,2025-10-15,direct,Fort Worth TX,,,Application submitted
+Garner Health,Application (Oct),APPLIED,2025-10-10,direct,,,,Application submitted
+ZS,Business Technology Solutions Associate Consultant Intern,APPLIED,2025-10-10,icims,,,,Application submitted
+ZS,Decision Analytics Associate,APPLIED,2025-09-19,icims,,,,Application submitted
+BCG,Consulting Career Assessment,SCREENING,2025-09-08,direct,,,,Assessment invited
+Anthelion Capital,Machine Learning Engineer,INTERVIEW,2025-11-04,ashby,,,,Interview completed - first round
+Becker's Healthcare,Internship,INTERVIEW,2025-08-11,direct,,,,Screening call scheduled
+2nd Order Solutions,Application,APPLIED,2025-08-08,lever,,,,Application submitted
+MLP,Business Development Intern,APPLIED,2025-08-07,direct,New York NY,,,Application submitted
+Pentair,Product Management Leadership Development Internship,APPLIED,2025-08-07,direct,,,,Application submitted
+PCG,Application,APPLIED,2025-08-22,workday,,,,Application submitted
+EquipmentShare,Financial Analyst,APPLIED,2025-08-11,greenhouse,,,,Application submitted
+Michels,Application,APPLIED,2025-08-07,direct,,,,Application submitted
+T. Marzetti Company,Application,APPLIED,2025-08-07,icims,,,,Application submitted
+Booz Allen Hamilton,Data Engineer,APPLIED,2025-08-06,workday,,,,Application submitted
+AT&T,Lead Advanced Analytics,APPLIED,2025-08-06,workday,,,,Application submitted
+TruStage,Analyst Post Sale Analytics,APPLIED,2025-08-06,workday,,,,Application submitted
+Astemo,Associate Requirements Engineer,APPLIED,2025-08-02,workday,,,,Application submitted
+The Trade Desk,Application,APPLIED,2025-08-02,direct,,,,Application submitted
+Peakflo,ML Engineer Intern,APPLIED,2025-08-01,dover,,,,Application submitted
+Reach Agency,AI / Developer Intern,APPLIED,2025-07-31,direct,,,,Application submitted
+CohnReznick,Data & Analytics Senior Associate,APPLIED,2025-07-31,direct,,,,Application submitted
+Affirm,Analytics Engineer People Data,APPLIED,2025-07-30,greenhouse,,,,Application submitted
+Tellius,AI Engineering Intern,APPLIED,2025-07-30,greenhouse,,,,Application submitted
+Johnson Law Group,Data Analyst Intern,APPLIED,2025-07-30,greenhouse,,,,Application submitted
+Palantir,Software Engineer Internship,APPLIED,2025-07-26,lever,,,,Application submitted
+T-Mobile,Data Scientist Fiber Team,APPLIED,2025-07-26,workday,,,,Application submitted
+Jerry,Data Scientist (Jul),APPLIED,2025-07-26,ashby,,,,Application submitted
+JPMorgan Chase,Application 210647674,APPLIED,2025-07-24,oracle,,,,Application submitted
+EY,Healthcare Data Analyst,APPLIED,2025-07-24,gignow,,,,Application submitted
+Amazon,MBA Pathways Operations Manager 2026,APPLIED,2025-07-26,amazon,,,,Application submitted
+Amazon,Data Engineer II AWS Analytics,APPLIED,2025-07-26,amazon,,,,Application submitted
+Amazon,Data Engineer Customer Engagement,APPLIED,2025-07-26,amazon,,,,Application submitted
+Amazon,BI Engineer Stores Finance,APPLIED,2025-07-26,amazon,,,,Application submitted
+Goldman Sachs,Application,APPLIED,2025-07-24,oracle,,,,Application submitted
+Deloitte,Business Strategy Summer Scholar 2026,APPLIED,2025-07-24,direct,,,,Application submitted
+Medicom,Application,APPLIED,2025-07-23,rippling,,,,Application submitted
+Wells Fargo,Analytics and Data Development Program 2026,APPLIED,2025-07-26,workday,,,,Application submitted
+Trustmark,Enterprise BI Analyst,APPLIED,2025-07-26,icims,,,,Application submitted
+Skillsoft,Summer Intern AI Product Manager,APPLIED,2025-07-26,direct,,,,Application submitted
+PEAK6,Trading Bootcamp Micro-Internship,APPLIED,2025-07-26,ripplematch,,,,Application submitted
+Chewy,Business Intelligence Analyst III,APPLIED,2025-07-26,direct,,,,Application submitted
+Providence,Senior Data Scientist,INTERVIEW,2025-07-26,direct,,,,Self-paced text interview invited
+United Soccer League,BI UWEP Internship,APPLIED,2025-07-20,teamworkonline,,,,Application submitted
+Cambium Learning,Application,APPLIED,2025-07-20,workday,,,,Application submitted
+Infrrd,Python Intern,APPLIED,2025-07-20,bamboohr,,,,Application submitted
+BILL,ML Engineer Intern 2026,APPLIED,2025-07-20,direct,,,,Application submitted
+QuantCo,Application,APPLIED,2025-07-20,lever,,,,Application submitted
+Delta Air Lines,Intern Commercial Strategy 2026,SCREENING,2025-07-10,direct,,,,Assessment invited
+Caterpillar,2026 Summer Corporate Intern Digital and Analytics,APPLIED,2025-07-14,workday,,,,Application submitted
+Akuna Capital,Quantitative Development & Strategy Intern 2026,APPLIED,2025-07-14,greenhouse,,,,Application submitted
+Akuna Capital,Quantitative Research Intern 2026,APPLIED,2025-07-14,greenhouse,,,,Application submitted
+Businessolver,Application,APPLIED,2025-07-14,greenhouse,,,,Application submitted
+insightsoftware,Data & Analytics Intern,APPLIED,2025-07-12,direct,,,,Application submitted
+ExodusPoint,Application,APPLIED,2025-07-10,direct,,,,Application submitted
+Midwest Employers Casualty,Application,APPLIED,2025-07-12,icims,,,,Application submitted
+Glenmede Trust,Automation and Data Analyst Co-Op,APPLIED,2025-07-03,adp,,,,Application submitted
+OSF HealthCare,Application,APPLIED,2025-07-03,icims,,,,Application submitted
+University of Washington,Student Assistant,APPLIED,2025-07-01,direct,Seattle WA,,,Application submitted
+University of Washington,BI Data Architect,APPLIED,2025-07-01,direct,Seattle WA,,,Application submitted
+University of Washington,Data Engineer DBA,APPLIED,2025-07-01,direct,Seattle WA,,,Application submitted
+Bending Spoons,Graduate AI Software Engineer,APPLIED,2026-04-10,direct,,,,Application received
+Bending Spoons,AI Research Engineer,REJECTED,2026-04-15,direct,,,,Rejection received
+SentiLink,Fraud Intelligence Analyst,REJECTED,2026-04-10,ashby,,,,Rejection received
+SentiLink,Applied ML Scientist,REJECTED,2026-03-25,ashby,,,,Rejection received
+Visa,Application (Apr),APPLIED,2026-04-10,smartrecruiters,,,,Application submitted
+Visa,Application (Jan),APPLIED,2026-01-15,smartrecruiters,,,,Application submitted
+Marsh,Product Manager,APPLIED,2026-04-09,workday,,,,Application submitted
+Frontline Education,Product Manager / Senior PM,REJECTED,2026-04-06,jobvite,,,,Rejection received
+Jobright.ai,Product Manager Early Career,REJECTED,2026-04-04,direct,,,,Rejection received
+Hive,Software Engineer Backend,APPLIED,2026-04-03,lever,,,,Application submitted
+S&P Global,Associate Product Manager Marketplace,REJECTED,2026-04-02,workday,,,,Rejection received
+VoltaGrid,Senior Product Manager AI Strategy,APPLIED,2026-03-31,ultipro,,,,Application submitted
+Ellipsis Labs,Software Engineer 2027 New Grads,APPLIED,2026-03-31,ashby,,,,Application submitted
+SolidProfessor,Product Manager,REJECTED,2026-04-19,direct,,,,Rejection received
+Rockwool,Product Manager,REJECTED,2026-04-17,indeed,,,,Rejection via Indeed
+InformData,Product Manager Verifications,APPLIED,2026-03-26,paycomonline,,,,Application submitted
+Nebius,AI/ML Specialist Solution Architect,REJECTED,2026-03-26,greenhouse,,,,Rejection received
+FlairX,Application,APPLIED,2026-03-25,linkedin,,,,Applied via LinkedIn
+Conversica,Software Engineer AI Platform,APPLIED,2026-03-15,lever,,,,Application submitted
+Bumble,Associate Product Manager New Grad 2026,APPLIED,2026-03-15,lever,,,,Application submitted
+Nebius,Early Talent Program,APPLIED,2026-03-14,greenhouse,,,,Application submitted
+HiBob Company,Entry-Level Data Scientist AI Chatbot,APPLIED,2026-03-14,hibob,,,,Application submitted
+Michels Corporation,Summer 2026 Internship,APPLIED,2026-03-13,direct,,,,Application submitted
+Zillow,Applied Scientist,APPLIED,2026-03-19,workday,,,,Application submitted
+Zillow,Machine Learning Engineer Agentic AI,APPLIED,2026-03-19,workday,,,,Application submitted
+Zillow,Business Intelligence Analyst,APPLIED,2026-02-17,workday,,,,Application submitted
+Zillow,ML Engineer Shopping AI,APPLIED,2026-02-17,workday,,,,Application submitted
+Boeing,Strategic Pricing Analyst,REJECTED,2026-02-24,workday,,,,Rejection received
+Boeing,Analytics Engineer,REJECTED,2026-01-23,workday,,,,Rejection received
+Boeing,Associate BI Analyst,REJECTED,2026-01-13,workday,,,,Rejection received
+Boeing,Business and Systems Analyst,REJECTED,2026-01-06,workday,,,,Rejection received
+Kinnect,Application,INTERVIEW,2026-02-17,wellfound,,,,Application accepted - schedule interview
+D. E. Shaw,AI Product Manager Discretionary Technology,APPLIED,2026-02-19,direct,New York NY,,,Application complete
+Suede/Miirr.ai,Founding Engineer,INTERVIEW,2026-03-19,direct,,,,Interview scheduled with Shama
+Karbone,Data Engineer,INTERVIEW,2026-04-23,direct,New York NY,,,Phone interview with Davide Rosso
+HPE,Applied Machine Learning Engineer,REJECTED,2026-02-13,workday,,,,Rejection received
+HPE,Product Management Intern,REJECTED,2026-01-14,workday,,,,Rejection received
+HPE,Product Manager,REJECTED,2026-01-13,workday,,,,Rejection received
+EverCommerce,EverPro AI Internship,APPLIED,2026-01-29,workday,,,,Application submitted - later paused
+INSIGHT2PROFIT,Data Analytics Analyst,APPLIED,2026-02-08,icims,Beachwood OH,,,Application submitted
+Expedia Group,Software Development Engineering Graduate 2026,APPLIED,2026-02-08,workday,,,,Application submitted
+Tapestry,Analytics Intern Jacksonville 2026,REJECTED,2026-01-31,direct,,,,Rejection received
+Cimento AI,Founding Engineer New Grads,APPLIED,2026-01-28,dover,,,,Application submitted
+Stearns Bank,Fintech Analyst,APPLIED,2026-01-25,adp,,,,Application submitted
+Aurelian,Software Engineer Voice AI,APPLIED,2026-01-24,yc,,,,YC Work at a Startup
+Silurian,ML Research Engineer / Scientist,APPLIED,2026-01-24,yc,,,,YC Work at a Startup
+Terrakotta,Software Engineer Product New Grad,APPLIED,2026-01-24,yc,,,,YC Work at a Startup
+WHOOP,Analytics Platform Co-op,APPLIED,2026-01-25,lever,Boston MA,,,Application submitted
+WHOOP,Business Analyst II AI Product,APPLIED,2026-01-25,lever,Boston MA,,,Application submitted
+Commons,Data/AI Engineer,REJECTED,2026-01-22,ashby,,,,Rejection received
+Burlington Stores,Allocation Analyst Development Program 2026,REJECTED,2026-01-22,workday,,,,Rejection received
+CTF Illinois,Data Specialist,APPLIED,2026-01-19,paycomonline,,,,Application submitted
+IBM,Entry Level Product Manager 56278,REJECTED,2026-01-18,ibm,,,,Rejection received
+IBM,Data Engineer Entry Level Buffalo,REJECTED,2026-01-18,ibm,Buffalo NY,,,Rejection received
+IBM,Entry Level Product Manager 73854,REJECTED,2026-01-18,ibm,,,,Rejection received
+IBM,Entry Level AI/ML Engineer SVL,REJECTED,2026-01-18,ibm,,,,Rejection received
+Port of Seattle,Graduate Intern BI,REJECTED,2026-03-02,direct,Seattle WA,,,Rejection received
+Relativity,Technical Business Analyst,REJECTED,2026-02-26,workday,,,,Position filled
+Cartesia,Research Engineer Data,REJECTED,2026-02-24,ashby,,,,Rejection received
+RELI Group,Power BI Intern,REJECTED,2026-02-24,paycomonline,,,,Rejection received
+Mapfre Insurance,Product Management Analyst Senior,REJECTED,2026-02-19,successfactors,,,,Rejection received
+Distyl AI,AI Engineer New Graduate (Feb),REJECTED,2026-02-20,ashby,,,,Rejection received
+Shutterfly,EHS Systems Data Analyst,REJECTED,2026-01-11,jobvite,,,,Rejection received
+Auger,Software Development Engineer New Grad 2026,APPLIED,2026-01-10,gem,,,,Application submitted
+AARATECH,Data Analyst,APPLIED,2026-01-08,linkedin,,,,Applied via LinkedIn
+Stuller,BI Developer Summer Intern,APPLIED,2026-01-03,oracle,,,,Application submitted
+Intuit,Data Engineer SWE2,APPLIED,2026-01-15,direct,,,,Application submitted
+City of McKinney,Application,APPLIED,2026-01-10,governmentjobs,,,,Application submitted
+Texas Instruments,New College Graduate Data Engineer,APPLIED,2026-02-01,direct,Dallas TX,,,Application submitted
+Further,Application,APPLIED,2026-02-01,greenhouse,,,,Application submitted
+Front Range Community College,Application,APPLIED,2026-02-01,direct,,,,Application submitted
+UNM Medical Group,Business Intelligence Analyst,APPLIED,2026-02-01,clearcompany,,,,Application submitted
+SouthWest Transit,Application,APPLIED,2026-01-24,governmentjobs,,,,Application submitted
+Bain & Company,Assessment,SCREENING,2025-07-31,direct,,,,TestGorilla assessment invited
+BlackRock,2026 Summer Internship Technology Operations,SCREENING,2025-07-23,direct,Seattle WA,,,Pre-interview assessment
+BlackRock,2026 Summer Internship Data Analytics Modeling,SCREENING,2025-07-23,direct,Seattle WA,,,Pre-interview coding assessment
+Varsity Tutors,Tutor,INTERVIEW,2025-07-26,hirevue,,,,Video interview link sent
+Reinforcelabs,Coding Interview,INTERVIEW,2026-02-02,direct,,,,Completed coding interview with Shiming
+UW Interfolio,Student Support Assistant,INTERVIEW,2025-06-20,direct,Seattle WA,,,Interview scheduled with Diana Silverio
