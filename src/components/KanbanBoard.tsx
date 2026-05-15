@@ -1,90 +1,138 @@
 "use client";
 
-import {
-  ApplicationWithJob,
-  STATUS_ORDER,
-  STATUS_BG,
-  STATUS_BADGE,
-  STATUS_COLORS,
-} from "@/lib/types";
+import { useMemo, useState } from "react";
+import { ApplicationWithJob } from "@/lib/types";
+import { cn } from "@/lib/utils";
 
-function StatusColumn({
-  status,
-  apps,
-}: {
-  status: string;
-  apps: ApplicationWithJob[];
-}) {
-  return (
-    <div className={`rounded-xl border-2 ${STATUS_BG[status]} p-4 min-w-[260px] flex-1`}>
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="font-bold text-sm uppercase tracking-wide text-gray-700">
-          {status}
-        </h3>
-        <span
-          className="text-xs font-bold px-2.5 py-1 rounded-full text-white"
-          style={{ backgroundColor: STATUS_COLORS[status] }}
-        >
-          {apps.length}
-        </span>
-      </div>
-      <div className="space-y-3">
-        {apps.map((app) => (
-          <div
-            key={app.application_id}
-            className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 hover:shadow-md transition-shadow cursor-pointer"
-          >
-            <div className="font-semibold text-sm text-gray-900 leading-tight">
-              {app.title}
-            </div>
-            <div className="text-sm text-gray-600 mt-1">{app.company}</div>
-            <div className="flex items-center gap-2 mt-2">
-              <span className="text-xs text-gray-400">{app.location}</span>
-            </div>
-            <div className="flex items-center justify-between mt-3">
-              <span className="text-xs text-gray-400">
-                ${parseInt(app.salary_min).toLocaleString()} -{" "}
-                ${parseInt(app.salary_max).toLocaleString()}
-              </span>
-              <span
-                className={`text-xs px-2 py-0.5 rounded-full capitalize ${STATUS_BADGE[app.status]}`}
-              >
-                {app.platform}
-              </span>
-            </div>
-            <div className="text-xs text-gray-400 mt-2">
-              Applied {new Date(app.applied_date).toLocaleDateString()}
-            </div>
-          </div>
-        ))}
-        {apps.length === 0 && (
-          <div className="text-center text-gray-400 text-sm py-8">
-            No applications
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+type Stage = "APPLIED" | "SCREENING" | "INTERVIEW" | "OFFER" | "REJECTED";
+
+const COLUMNS: { id: Stage; label: string }[] = [
+  { id: "APPLIED", label: "Applied" },
+  { id: "SCREENING", label: "Screening" },
+  { id: "INTERVIEW", label: "Interviewing" },
+  { id: "OFFER", label: "Offer" },
+  { id: "REJECTED", label: "Archived" },
+];
 
 export default function KanbanBoard({
   applications,
 }: {
   applications: ApplicationWithJob[];
 }) {
-  const grouped = STATUS_ORDER.reduce(
-    (acc, status) => {
-      acc[status] = applications.filter((a) => a.status === status);
-      return acc;
-    },
-    {} as Record<string, ApplicationWithJob[]>
-  );
+  const [dragId, setDragId] = useState<string | null>(null);
+
+  const grouped = useMemo(() => {
+    const g: Record<Stage, ApplicationWithJob[]> = {
+      APPLIED: [],
+      SCREENING: [],
+      INTERVIEW: [],
+      OFFER: [],
+      REJECTED: [],
+    };
+    for (const a of applications) {
+      const stage = a.status as Stage;
+      if (g[stage]) g[stage].push(a);
+    }
+    return g;
+  }, [applications]);
 
   return (
-    <div className="flex gap-4 overflow-x-auto pb-4">
-      {STATUS_ORDER.map((status) => (
-        <StatusColumn key={status} status={status} apps={grouped[status]} />
-      ))}
-    </div>
+    <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 animate-in">
+      {COLUMNS.map((col) => {
+        const items = grouped[col.id];
+        const isOffer = col.id === "OFFER";
+        const isRejected = col.id === "REJECTED";
+        const isInterview = col.id === "INTERVIEW";
+        return (
+          <div
+            key={col.id}
+            className={cn(
+              "space-y-4 transition-opacity",
+              isRejected && "opacity-60 hover:opacity-100"
+            )}
+          >
+            <div className="flex items-center justify-between border-b border-border pb-2">
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-bold tracking-tight uppercase">
+                  {col.label}
+                </h3>
+                <span
+                  className={cn(
+                    "text-[10px] font-mono px-1.5 py-0.5 rounded",
+                    isInterview
+                      ? "bg-primary/20 text-primary"
+                      : "bg-white/5 text-muted-foreground"
+                  )}
+                >
+                  {items.length}
+                </span>
+              </div>
+            </div>
+
+            <div className="space-y-3 min-h-32">
+              {items.length === 0 ? (
+                <div className="h-32 border-2 border-dashed border-border rounded-lg flex items-center justify-center">
+                  <span className="text-[10px] font-mono text-muted-foreground uppercase tracking-widest">
+                    Empty
+                  </span>
+                </div>
+              ) : (
+                items.map((a) => {
+                  const salaryMin = parseInt(a.salary_min);
+                  const salaryMax = parseInt(a.salary_max);
+                  const salary =
+                    salaryMax > 0
+                      ? `$${salaryMin.toLocaleString()} – $${salaryMax.toLocaleString()}`
+                      : "";
+                  return (
+                    <article
+                      key={a.application_id}
+                      draggable
+                      onDragStart={() => setDragId(a.application_id)}
+                      onDragEnd={() => setDragId(null)}
+                      className={cn(
+                        "p-4 bg-card border rounded-lg transition-all cursor-grab active:cursor-grabbing",
+                        isInterview
+                          ? "border-primary/30 ring-1 ring-primary/10"
+                          : isOffer
+                            ? "border-primary/40 shadow-[0_0_24px_-12px_hsl(142_76%_45%/0.6)]"
+                            : "border-border hover:border-primary/40"
+                      )}
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <span
+                          className={cn(
+                            "text-[10px] font-mono",
+                            isInterview ? "text-primary" : "text-muted-foreground"
+                          )}
+                        >
+                          {a.platform}
+                        </span>
+                        <span className="text-[10px] font-mono text-muted-foreground">
+                          {new Date(a.applied_date).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <h4 className="font-bold text-sm tracking-tight">
+                        {a.title}
+                      </h4>
+                      <p className="text-xs text-muted-foreground">
+                        {a.company} · {a.location}
+                      </p>
+                      {salary && (
+                        <div className="mt-4 pt-3 border-t border-white/5">
+                          <span className="text-xs font-mono font-medium text-foreground/80">
+                            {salary}
+                          </span>
+                        </div>
+                      )}
+                    </article>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        );
+      })}
+    </section>
   );
 }
