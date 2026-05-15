@@ -1,8 +1,44 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { Job } from "@/lib/types";
 import { cn } from "@/lib/utils";
+
+function extractKeywords(text: string): string[] {
+  const stop = new Set([
+    "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "of", "with",
+    "by", "from", "is", "are", "was", "were", "be", "been", "being", "have", "has", "had",
+    "do", "does", "did", "will", "would", "could", "should", "may", "might", "shall",
+    "can", "need", "must", "not", "no", "so", "if", "then", "than", "that", "this",
+    "it", "its", "as", "we", "our", "you", "your", "they", "their", "he", "she", "i",
+    "my", "me", "am", "all", "each", "every", "both", "few", "more", "most", "other",
+    "some", "such", "up", "out", "about", "into", "over", "after", "also", "just",
+    "new", "one", "two", "three", "work", "experience", "year", "years", "able",
+    "well", "including", "using", "used", "across", "etc", "per", "via",
+  ]);
+  const words = text.toLowerCase().replace(/[^a-z0-9+#.\s-]/g, " ").split(/\s+/).filter(w => w.length > 2 && !stop.has(w));
+  const freq: Record<string, number> = {};
+  words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+  return Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 80).map(([w]) => w);
+}
+
+function computeRelevance(job: Job, userKeywords: string[]): number {
+  if (userKeywords.length === 0) return 0;
+  const jobText = `${job.title} ${job.company} ${job.description || ""} ${job.location} ${job.job_type}`.toLowerCase();
+  let matches = 0;
+  for (const kw of userKeywords) {
+    if (jobText.includes(kw)) matches++;
+  }
+  const raw = (matches / Math.min(userKeywords.length, 20)) * 100;
+  return Math.min(99, Math.round(raw));
+}
+
+function relevanceColor(score: number): string {
+  if (score >= 75) return "bg-primary/15 text-primary border-primary/30";
+  if (score >= 50) return "bg-blue-400/10 text-blue-300 border-blue-400/20";
+  if (score >= 25) return "bg-amber-400/10 text-amber-300 border-amber-400/20";
+  return "bg-white/5 text-muted-foreground border-white/10";
+}
 
 const PLATFORM_BADGE: Record<string, string> = {
   indeed: "bg-blue-500/10 text-blue-400 border-blue-500/20",
@@ -35,6 +71,24 @@ export default function JobDiscovery({
   const [platformFilter, setPlatformFilter] = useState("all");
   const [trackedJobs, setTrackedJobs] = useState<Set<string>>(new Set());
   const [trackingJob, setTrackingJob] = useState<string | null>(null);
+  const [userKeywords, setUserKeywords] = useState<string[]>([]);
+
+  useEffect(() => {
+    const resumeText = localStorage.getItem("dubsy_resume_text");
+    if (resumeText) {
+      setUserKeywords(extractKeywords(resumeText));
+      return;
+    }
+    fetch("/api/tracker")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.rows?.length > 0) {
+          const text = data.rows.map((r: any) => `${r.title} ${r.company} ${r.notes || ""}`).join(" ");
+          setUserKeywords(extractKeywords(text));
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   function toggleSource(source: string) {
     setScrapeSources((prev) =>
@@ -158,7 +212,7 @@ export default function JobDiscovery({
   const filtered = useMemo(() => {
     const source = merged || jobs;
     const seen = new Set<string>();
-    return source.filter((j) => {
+    const result = source.filter((j) => {
       const key = `${j.title.toLowerCase()}|${j.company.toLowerCase()}|${j.platform}`;
       if (seen.has(key)) return false;
       seen.add(key);
@@ -171,7 +225,11 @@ export default function JobDiscovery({
       if (platformFilter !== "all" && j.platform !== platformFilter) return false;
       return true;
     });
-  }, [jobs, merged, query, location, experience, workMode, platformFilter]);
+    if (userKeywords.length > 0) {
+      result.sort((a, b) => computeRelevance(b, userKeywords) - computeRelevance(a, userKeywords));
+    }
+    return result;
+  }, [jobs, merged, query, location, experience, workMode, platformFilter, userKeywords]);
 
   const platforms = [...new Set(jobs.map((j) => j.platform))];
 
@@ -305,6 +363,7 @@ export default function JobDiscovery({
           const isTracking = trackingJob === job.job_id;
           const salary = formatSalary(job);
           const isLive = job.job_id.startsWith("live-");
+          const relevance = userKeywords.length > 0 ? computeRelevance(job, userKeywords) : 0;
           return (
             <article
               key={job.job_id}
@@ -322,6 +381,17 @@ export default function JobDiscovery({
                   </p>
                 </div>
                 <div className="flex items-center gap-1.5 shrink-0 ml-2">
+                  {relevance > 0 && (
+                    <span
+                      className={cn(
+                        "px-2 py-0.5 rounded-full border text-[10px] font-mono font-bold tracking-wider",
+                        relevanceColor(relevance)
+                      )}
+                      title="Match based on your resume/profile"
+                    >
+                      {relevance}%
+                    </span>
+                  )}
                   {isLive && (
                     <span className="px-1.5 py-0.5 rounded text-[8px] font-mono uppercase tracking-wider bg-primary/15 text-primary border border-primary/20">
                       Live
